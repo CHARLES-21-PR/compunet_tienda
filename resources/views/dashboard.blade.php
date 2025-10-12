@@ -1,9 +1,11 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="text-white fw-bold fs-5 lh-1 py-1 mb-0">
-            {{ __('¡Bienvenido de nuevo :name!', ['name' => Auth::user()->name]) }}
-        </h2>
-    </x-slot>
+  <x-slot name="header">
+    @auth
+      <h2 class="text-white fw-bold fs-5 lh-1 py-1 mb-0">
+        {{ __('¡Bienvenido de nuevo :name!', ['name' => Auth::user()->name]) }}
+      </h2>
+    @endauth
+  </x-slot>
     <main>
      
     <div id="carouselExampleCaptions" class="carousel slide">
