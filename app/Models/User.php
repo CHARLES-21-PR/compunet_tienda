@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -21,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        
     ];
 
     /**
@@ -44,5 +46,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+   
+    public function isAdmin(): bool
+    {
+        // If Spatie trait is available use it
+        if (method_exists($this, 'hasRole')) {
+            return $this->hasRole('admin');
+        }
+
+        // Fallback: check a `role` attribute or `is_admin` boolean
+        if (isset($this->role)) {
+            return $this->role === 'admin';
+        }
+
+        if (isset($this->is_admin)) {
+            return (bool) $this->is_admin;
+        }
+
+        return false;
     }
 }

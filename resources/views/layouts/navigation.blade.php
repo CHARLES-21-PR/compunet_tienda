@@ -6,7 +6,7 @@
                <img class="ico" src="/img/face.webp" alt="" srcset="">
            </div>
            <div class="redes-1">
-             <a href="">Inicio</a>
+             <a href="{{ route('dashboard') }}">Inicio</a>
              <a href="">Nuestras tiendas</a>
              <a href="">Contáctanos</a>
            </div>
@@ -27,14 +27,18 @@
 
                 
                 <ul class="menu_nesting">
-                    <li class="menu_inside">
-                        <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a1.webp" alt="">Computadoras</a>
+                     <li class="menu_inside">
+                        <a href="{{ route('categories.show', ['category' => 'computadoras']) }}" class="menu_link menu_link--inside">
+                            <img class="icon2" src="/img/a1.webp" alt="">Computadoras
+                        </a>
                     </li>
                     <li class="menu_inside">
-                        <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a2.webp" alt="">Laptops</a>
+                        <a href="{{ route('categories.show', ['category' => 'laptops']) }}" class="menu_link menu_link--inside">
+                            <img class="icon2" src="/img/a2.webp" alt="">Laptops
+                        </a>
                     </li>
                     <li class="menu_inside">
-                        <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a3.webp" alt="">Tablets</a>
+                        <a href="{{ route('categories.show', ['category' => 'tablets']) }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a3.webp" alt="">Tablets</a>
                     </li>
                 </ul>
             </div>
@@ -42,16 +46,16 @@
                 <a class="menu_link" href=""><img class="icon1" src="/img/l2.webp" alt="">Impresoras</a> 
             </div>
             <div class="enlace enlace-show">
-                <a class="menu_link" href=""><img class="icon1" src="/img/l3.webp" alt="">Catálogos<img class="arrow" src="assets/arrow.svg" alt=""></a>
+                <a class="menu_link" href="#"><img class="icon1" src="/img/l3.webp" alt="">Catálogos<img class="arrow" src="assets/arrow.svg" alt=""></a>
                 <ul class="menu_nesting">
                     <li class="menu_inside">
-                        <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a4.webp" alt="">Tintas</a>
+                        <a href="{{ route('categories.show', ['category' => 'tintas']) }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a4.webp" alt="">Tintas</a>
                     </li>
                     <li class="menu_inside">
-                        <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a5.webp" alt="">SSD</a>
+                        <a href="{{ route('categories.show', ['category' => 'ssd']) }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a5.webp" alt="">SSD</a>
                     </li>
                     <li class="menu_inside">
-                        <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a6.webp" alt="">COMBO GAMER</a>
+                        <a href="{{ route('categories.show', ['category' => 'combo-gamer']) }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a6.webp" alt="">COMBO GAMER</a>
                     </li>
                 </ul>
             </div>
@@ -76,6 +80,7 @@
                 
              </div>
              @if (Route::has('login'))
+                
                 <nav class="flex items-center justify-end gap-4">
                     @auth
                     
@@ -103,6 +108,11 @@
                                             {{ __('Profile') }}
                                         </x-dropdown-link>
 
+                                        @role('admin')
+                                        <x-dropdown-link :href="route('settings.categories.index')">
+                                            {{ __('Settings') }}
+                                        </x-dropdown-link>
+                                        @endrole
                                         <!-- Authentication -->
                                         <form method="POST" action="{{ route('logout') }}">
                                             @csrf

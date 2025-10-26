@@ -33,7 +33,14 @@
 
             <!-- Page Content -->
             <main>
-                {{ $slot }}
+                {{-- Support both component slot and blade sections for compatibility --}}
+                @isset($slot)
+                    {{ $slot }}
+                @endisset
+
+                @hasSection('content')
+                    @yield('content')
+                @endif
             </main>
             <!-- Footer -->
             @include('layouts.footer')
