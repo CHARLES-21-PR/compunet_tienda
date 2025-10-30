@@ -9,14 +9,12 @@ class CategorySettingsController extends Controller
 {
     public function index()
     {
-        // puedes cambiar a paginate(15) si quieres paginación
+        
         $categories = Category::orderBy('id')->get();
         return view('settings.categories.index', compact('categories'));
     }
     
-    /**
-     * Mostrar formulario de creación de categoría
-     */
+   
     public function create()
     {
         return view('settings.categories.create');

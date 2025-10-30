@@ -40,7 +40,7 @@
                 <p>ventas:</p>
                 <p><img src="/img/m2.webp" alt=""> <a class="num" href="#"> 987654321</a> - <a class="num" href="#">987654321</a></p>
                 <p>Local Tienda-Taller-Internet Mala</p>
-                <a href="#"><img src="img/m1.webp" alt="">Jr. Real N ° 413 - Mala</a>
+                <a href="#"><img src="/img/m1.webp" alt="">Jr. Real N ° 413 - Mala</a>
                 <p><img src="/img/m2.webp" alt=""> <a  class="num" href="#">Ventas: 987654321</a></p>
                 <p><img src="/img/m2.webp" alt=""> <a  class="num" href="#">Taller: 987654321</a></p>
                 

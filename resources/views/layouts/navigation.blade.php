@@ -23,7 +23,7 @@
 
             <div class="enlace enlace-show">
 
-                <a class="menu_link" href=""><img class="icon1" src="/img/l1.webp" alt="">Equipos de computo<img class="arrow" src="assets/arrow.svg" alt=""></a>
+                <a class="menu_link" href=""><img class="icon1" src="/img/l1.webp" alt="">Equipos de computo<img class="arrow" src="/assets/arrow.svg" alt=""></a>
 
                 
                 <ul class="menu_nesting">
@@ -46,7 +46,7 @@
                 <a class="menu_link" href=""><img class="icon1" src="/img/l2.webp" alt="">Impresoras</a> 
             </div>
             <div class="enlace enlace-show">
-                <a class="menu_link" href="#"><img class="icon1" src="/img/l3.webp" alt="">Catálogos<img class="arrow" src="assets/arrow.svg" alt=""></a>
+                <a class="menu_link" href="#"><img class="icon1" src="/img/l3.webp" alt="">Catálogos<img class="arrow" src="/assets/arrow.svg" alt=""></a>
                 <ul class="menu_nesting">
                     <li class="menu_inside">
                         <a href="{{ route('categories.show', ['category' => 'tintas']) }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a4.webp" alt="">Tintas</a>
@@ -63,7 +63,7 @@
                 <a class="menu_link" href=""><img class="icon1" src="/img/l4.webp" alt="">Internet ilimitado</a>
             </div>
             <div class="enlace enlace-show">
-                <a class="menu_link" href=""><img class="icon1" src="/img/l5.webp" alt="">Atención especializada<img class="arrow" src="assets/arrow.svg" alt=""></a>
+                <a class="menu_link" href=""><img class="icon1" src="/img/l5.webp" alt="">Atención especializada<img class="arrow" src="/assets/arrow.svg" alt=""></a>
                 <ul class="menu_nesting">
                     <li class="menu_inside">
                         <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a7.webp" alt="">Camara de vigilancia</a>
@@ -172,8 +172,11 @@
             @endif
 
              
-            <div class="menu_hamburguer">
+            <div class="menu_hamburguer" role="button" aria-label="Abrir menú" aria-expanded="false">
                 <img class="menu_img" src="/assets/menu.svg" alt="">
              </div>
        </nav>
+
+
+<script src="/js/menu.js"></script>
 
