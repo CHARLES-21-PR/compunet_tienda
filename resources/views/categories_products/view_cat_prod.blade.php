@@ -1,9 +1,9 @@
 <x-app-layout>
 
-    <h1 class="text-white p-3 text-center">{{ $category->name }}</h1>
+    <h1 class="text-black p-3 text-center">{{ $category->name }}</h1>
 
     @if($category->products->isEmpty())
-        <p class="text-white text-center">No hay productos en esta categoría.</p>
+        <p class="text-black text-center">No hay productos en esta categoría.</p>
     @else
         <div class="container">
             <div class="row g-3 justify-content-center">
@@ -20,7 +20,7 @@
                                 <p class="card-text" style="flex:1">{{ $product->description }}</p>
                                 <div class="mt-2 d-flex justify-content-between align-items-center">
                                     <strong class="text-success">s/.{{ number_format($product->price, 2) }}</strong>
-                                    <a href="#" class="btn btn-sm btn-primary">Comprar</a>
+                                    <a href="{{ route('products.details', $product->id) }}" class="btn btn-sm btn-primary">Comprar</a>
                                 </div>
                             </div>
                         </div>

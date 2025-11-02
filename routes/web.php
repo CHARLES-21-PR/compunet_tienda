@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategorySettingsController;
 use App\Http\Controllers\ProductSettingsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,6 +23,8 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
+
+Route::get('/products/{id_product}', [ProductController::class, 'index'])->name('products.details');
 
 Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(function () {
     Route::get('/settings/categories', [CategorySettingsController::class,'index'])->name('settings.categories.index');
