@@ -44,10 +44,11 @@
                         </div>
 
                         <div style="display:flex;gap:8px;flex-wrap:nowrap;">
-                            <form method="POST" action="#">
+                            <form id="addToCartForm" method="POST" action="{{ route('shopping_carts.add') }}">
                                 @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
                                 <input type="hidden" name="quantity" id="formQuantity" value="1">
-                                <button type="submit" class="btn btn-success" style="background:#10b981;border-color:#10b981;padding:10px 18px;font-weight:700;">Agregar al carrito</button>
+                                <button id="addToCartBtn" type="submit" class="btn btn-success" style="background:#10b981;border-color:#10b981;padding:10px 18px;font-weight:700;">Agregar al carrito</button>
                             </form>
 
                             <a href="#" class="btn btn-outline-primary" style="padding:10px 14px;border-radius:8px;border:1px solid #c7d2fe;color:#374151;background:#fff;">Comprar ahora</a>
@@ -135,6 +136,54 @@
             }
             if(plus) plus.addEventListener('click', ()=> setQty((parseInt(qtyInput.value)||1)+1));
             if(minus) minus.addEventListener('click', ()=> setQty((parseInt(qtyInput.value)||1)-1));
+            
+            // Interceptar el submit del formulario y enviar via fetch para actualizar badge sin recargar
+            const addForm = document.getElementById('addToCartForm');
+            const addBtn = document.getElementById('addToCartBtn');
+            if (addForm) {
+                addForm.addEventListener('submit', function(e){
+                    e.preventDefault();
+                    // Deshabilitar botón temporalmente
+                    const originalText = addBtn.innerHTML;
+                    addBtn.disabled = true;
+                    addBtn.innerHTML = 'Agregando...';
+
+                    const fd = new FormData(addForm);
+
+                    fetch(addForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        body: fd,
+                        credentials: 'same-origin'
+                    }).then(resp => resp.json()).then(json => {
+                        if (json && json.success) {
+                            // Actualizar badge: si existe helper window.updateCartBadge, usarlo
+                            if (window.updateCartBadge && typeof window.updateCartBadge === 'function') {
+                                window.updateCartBadge(json.count);
+                            } else {
+                                // Dispatch event para que quien escuche actualice el badge
+                                const ev = new CustomEvent('cart:updated', { detail: { count: json.count, total: json.total } });
+                                window.dispatchEvent(ev);
+                            }
+                            // Feedback breve
+                            addBtn.innerHTML = 'Agregado';
+                            setTimeout(()=>{ addBtn.innerHTML = originalText; addBtn.disabled = false; }, 900);
+                        } else {
+                            addBtn.innerHTML = originalText;
+                            addBtn.disabled = false;
+                            alert('No se pudo agregar el producto al carrito.');
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        addBtn.innerHTML = originalText;
+                        addBtn.disabled = false;
+                        alert('Error de red al agregar al carrito.');
+                    });
+                });
+            }
         })();
     </script>
 

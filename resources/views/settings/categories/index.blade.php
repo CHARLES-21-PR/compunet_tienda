@@ -12,14 +12,14 @@
 					<div class="d-flex align-items-center justify-content-between mb-3">
 						<div>
 							<h1 class="text-white mb-0">Categorías</h1>
-							<div class="text-muted small">Gestiona las categorías — búsqueda y acciones rápidas</div>
+							
 						</div>
 						<div class="d-flex align-items-center gap-2">
 							<div class="input-group input-group-sm">
 								<span class="input-group-text bg-transparent border-0 text-muted">
 									<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
 								</span>
-								<input type="search" class="form-control form-control-sm" placeholder="Buscar categoría...">
+								
 							</div>
 							<a href="{{ route('settings.categories.create') }}" class="btn btn-primary btn-sm">Crear</a>
 							<a href="#" class="btn btn-outline-light btn-sm">Exportar</a>

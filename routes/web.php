@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategorySettingsController;
+use App\Http\Controllers\Controller;
 use App\Http\Controllers\ProductSettingsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProductController;
@@ -26,8 +27,21 @@ Route::get('/categories/{category}', [CategoryController::class, 'show'])->name(
 
 Route::get('/products/{id_product}', [ProductController::class, 'index'])->name('products.details');
 
+// Carrito de compras - público (accesible sin rol admin)
+Route::get('/shopping-cart', [\App\Http\Controllers\ShoppingCartController::class, 'index'])->name('shopping_carts.index');
+// Añadir item al carrito (público - actualiza la sesión para invitados)
+Route::post('/shopping-cart/add', [\App\Http\Controllers\ShoppingCartController::class, 'add'])->name('shopping_carts.add');
+// Actualizar cantidad de un item en el carrito
+Route::post('/shopping-cart/update', [\App\Http\Controllers\ShoppingCartController::class, 'update'])->name('shopping_carts.update');
+// Eliminar item del carrito
+Route::post('/shopping-cart/remove', [\App\Http\Controllers\ShoppingCartController::class, 'remove'])->name('shopping_carts.remove');
+
 Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(function () {
     Route::get('/settings/categories', [CategorySettingsController::class,'index'])->name('settings.categories.index');
+
+
+    //Dashboard de administracion
+    Route::get('/settings/dashboard', [Controller::class, 'index_dashboard'])->name('settings.dashboard.index');
 
     //crud categorias
     Route::get('/settings/categories/create', [CategorySettingsController::class, 'create'])->name('settings.categories.create');

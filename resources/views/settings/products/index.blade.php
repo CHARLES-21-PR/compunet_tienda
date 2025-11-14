@@ -11,7 +11,7 @@
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
                                 <h1 class="text-white mb-0">Productos</h1>
-                                <div class="text-muted small">Administra tus productos — búsqueda rápida y acciones</div>
+                                
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                     <form id="productsFilterForm" method="GET" action="{{ route('settings.products.index') }}" class="d-flex align-items-center gap-2">

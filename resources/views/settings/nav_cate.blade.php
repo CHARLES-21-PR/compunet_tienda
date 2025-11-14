@@ -419,6 +419,13 @@
        
     </div>
   <ul class="nav nav-pills flex-column">
+    <li class="nav-item mb-1">
+      <a href="{{ route('dashboard') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('dashboard') ? 'active bg-white text-dark' : 'text-white' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h2v18H3V3zm6 6h2v12H9V9zm6-6h2v18h-2V3z"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+    </li>
+    
     
     <li class="nav-item mb-1">
       <a href="{{ route('settings.categories.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('settings.categories.*') ? 'active bg-white text-dark' : 'text-white' }}">
@@ -460,6 +467,12 @@
   </div>
 
   <ul class="nav nav-pills flex-column">
+    <li class="nav-item mb-1">
+      <a href="{{ route('settings.dashboard.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('settings.dashboard.*') ? 'active bg-white text-dark' : 'text-white' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h2v18H3V3zm6 6h2v12H9V9zm6-6h2v18h-2V3z"/></svg>
+        <span class="label">Dashboard</span>
+      </a>
+    </li>
     
     <li class="nav-item mb-1">
       <a href="{{ route('settings.categories.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('settings.categories.*') ? 'active bg-white text-dark' : 'text-white' }}">
