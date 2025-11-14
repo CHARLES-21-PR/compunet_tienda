@@ -478,7 +478,7 @@
     <li class="nav-item mt-2">
       <a class="nav-link disabled text-secondary d-flex align-items-center" href="#" tabindex="-1" aria-disabled="true">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h18v2H3zM3 7h18v2H3zM3 11h18v2H3zM3 15h18v2H3z"/></svg>
-        <span class="label">Orders</span>
+        <span class="label">Otros</span>
       </a>
     </li>
   </ul>
