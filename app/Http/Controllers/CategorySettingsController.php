@@ -9,8 +9,8 @@ class CategorySettingsController extends Controller
 {
     public function index()
     {
-        
-        $categories = Category::orderBy('id')->get();
+        // Paginate categories to avoid loading all at once
+        $categories = Category::orderBy('id')->paginate(10);
         return view('settings.categories.index', compact('categories'));
     }
     

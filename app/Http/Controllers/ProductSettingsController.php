@@ -9,10 +9,31 @@ use Illuminate\Support\Facades\Log;
 
 class ProductSettingsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::all();
-        return view('settings.products.index', compact('products'));
+        // Build query with optional search and category filter
+        $q = $request->query('q');
+        $categoryId = $request->query('category');
+
+        $query = Product::with('category');
+
+        if (!empty($q)) {
+            $query->where(function($qb) use ($q) {
+                $qb->where('name', 'like', "%{$q}%")
+                   ->orWhere('description', 'like', "%{$q}%");
+            });
+        }
+
+        if (!empty($categoryId)) {
+            $query->where('category_id', $categoryId);
+        }
+
+        $products = $query->orderBy('id')->paginate(10)->withQueryString();
+
+        // categories for the filter select
+        $categories = Category::orderBy('name')->get();
+
+        return view('settings.products.index', compact('products', 'categories', 'q', 'categoryId'));
     }
     public function create()
     {
