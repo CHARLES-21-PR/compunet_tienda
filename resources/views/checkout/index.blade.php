@@ -102,10 +102,12 @@
                     </div>
                 </div>
 
-                <div id="yapeFields" style="display:none">
+                <div id="yapeFields" style="display:none;">
                     <div class="mb-2">
-                        <label class="form-label">Número de teléfono (Yape)</label>
-                        <input name="phone" id="phoneInput" class="form-control form-control-lg rounded" placeholder="9XXXXXXXX" maxlength="9" inputmode="numeric" />
+                        <label class="form-label d-block text-center">QR (Yape)</label>
+                        <div class="d-flex justify-content-center">
+                            <img src="/img/QR_YAPE.jpg" alt="Yape QR Code" class="img-fluid mx-auto d-block" style="max-width: 200px;" />
+                        </div>
                     </div>
                 </div>
 
