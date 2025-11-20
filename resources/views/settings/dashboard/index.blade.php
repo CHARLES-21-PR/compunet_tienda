@@ -37,6 +37,33 @@
                             </div>
                         </div>
 
+                        {{-- Orders widget --}}
+                        <div class="mt-4">
+                            <h2 class="h5 text-white mb-2">Pedidos</h2>
+                            <div class="row">
+                                <div class="col-6 col-sm-4 col-md-3 mb-2">
+                                    <div class="d-flex align-items-center justify-content-center p-3" style="background: rgba(255,255,255,0.02); border-radius:8px; min-height:72px;">
+                                        <div class="text-center w-100">
+                                            <div class="h3 text-white mb-0">{{ $totalOrders ?? 0 }}</div>
+                                            <div class="text-white small" style="opacity:0.85">Total de pedidos</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div style="margin-top:10px; background: rgba(255,255,255,0.02); border-radius:8px; padding:10px;">
+                                        <strong class="text-white">Últimos pedidos</strong>
+                                        <ul class="list-unstyled mb-0 mt-2">
+                                            @forelse($recentOrders as $r)
+                                                <li class="text-white-50 small">#{{ $r->id }} — {{ ucfirst($r->status) }} — {{ $r->created_at->format('Y-m-d H:i') }}</li>
+                                            @empty
+                                                <li class="text-white-50 small">No hay pedidos recientes.</li>
+                                            @endforelse
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

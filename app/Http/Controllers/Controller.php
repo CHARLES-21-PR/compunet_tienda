@@ -28,11 +28,17 @@ class Controller extends BaseController
                 ->with(['products' => function($q){ $q->select('id','name','category_id')->orderBy('name'); }])
                 ->orderBy('name')
                 ->get();
+
+            // Orders summary
+            $totalOrders = \App\Models\Order::count();
+            $recentOrders = \App\Models\Order::orderBy('created_at', 'desc')->limit(5)->get();
         } catch (\Throwable $e) {
             $totalProducts = $inStock = $outOfStock = 0;
             $categories = collect();
+            $totalOrders = 0;
+            $recentOrders = collect();
         }
 
-        return view('settings.dashboard.index', compact('totalProducts', 'inStock', 'outOfStock', 'categories'));
+        return view('settings.dashboard.index', compact('totalProducts', 'inStock', 'outOfStock', 'categories', 'totalOrders', 'recentOrders'));
     }
 }

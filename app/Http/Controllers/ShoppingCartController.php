@@ -35,6 +35,21 @@ class ShoppingCartController extends Controller
 
         $product = Product::find($data['product_id']);
         $qty = intval($data['quantity']);
+        // Validar stock si existe
+        if (isset($product->stock) && $product->stock !== null) {
+            // cantidad existente en carrito
+            $cart = session('cart', []);
+            $existing = isset($cart[$product->id]) ? intval($cart[$product->id]['quantity']) : 0;
+            $requestedTotal = $existing + $qty;
+            if ($requestedTotal > intval($product->stock)) {
+                $allowed = intval($product->stock) - $existing;
+                if ($allowed < 0) $allowed = 0;
+                if ($request->wantsJson() || $request->header('Accept') === 'application/json') {
+                    return response()->json(['success' => false, 'message' => 'Stock insuficiente', 'allowed_add' => $allowed, 'allowed_total' => intval($product->stock)], 422);
+                }
+                return back()->with('error', 'Stock insuficiente. Solo quedan ' . intval($product->stock) . ' unidades.');
+            }
+        }
 
         $cart = session('cart', []);
 
@@ -68,6 +83,11 @@ class ShoppingCartController extends Controller
             ]);
         }
 
+        // If request indicates 'buy_now' (from non-AJAX form submit), redirect to checkout
+        if ($request->boolean('buy_now')) {
+            return redirect()->route('checkout.index');
+        }
+
         return back()->with('success', 'Producto agregado al carrito');
     }
 
@@ -83,6 +103,17 @@ class ShoppingCartController extends Controller
 
         $cart = session('cart', []);
         $key = $data['product_id'];
+        $product = Product::find($key);
+
+        // Validar stock si aplica
+        if (isset($product->stock) && $product->stock !== null) {
+            $requested = intval($data['quantity']);
+            if ($requested > intval($product->stock)) {
+                // si supera, retornar información para que el frontend ajuste
+                return response()->json(['success' => false, 'message' => 'Stock insuficiente', 'allowed_max' => intval($product->stock)], 422);
+            }
+        }
+
         if (isset($cart[$key])) {
             $cart[$key]['quantity'] = intval($data['quantity']);
             session(['cart' => $cart]);

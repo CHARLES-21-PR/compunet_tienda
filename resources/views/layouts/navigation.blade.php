@@ -37,7 +37,7 @@
             </ul>
         </div>
         <div class="enlace ">
-            <a class="menu_link" href=""><img class="icon1" src="/img/l2.webp" alt="">Impresoras</a>
+            <a class="menu_link" href="{{ route('categories.show', ['category' => 'impresoras']) }}"><img class="icon1" src="/img/l2.webp" alt="">Impresoras</a>
         </div>
         <div class="enlace enlace-show">
             <a class="menu_link" href="#"><img class="icon1" src="/img/l3.webp" alt="">Catálogos<img class="arrow" src="/assets/arrow.svg" alt=""></a>
@@ -94,7 +94,12 @@
                                 </button>
                             </x-slot>
                             <x-slot name="content">
-                                <x-dropdown-link :href="route('profile.edit')">{{ __('Profile') }}</x-dropdown-link>
+                                @php $u = Auth::user(); @endphp
+                                @if(isset($u->role) && $u->role === 'cliente')
+                                    <x-dropdown-link :href="route('client.orders.index')">{{ __('Mis pedidos') }}</x-dropdown-link>
+                                @else
+                                    <x-dropdown-link :href="route('profile.edit')">{{ __('Profile') }}</x-dropdown-link>
+                                @endif
                                 @role('admin')
                                     <x-dropdown-link :href="route('settings.categories.index')">{{ __('Settings') }}</x-dropdown-link>
                                 @endrole

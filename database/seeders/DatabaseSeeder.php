@@ -19,5 +19,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+        // seed default order statuses
+        $this->call([\Database\Seeders\OrderStatusesSeeder::class]);
     }
 }

@@ -60,10 +60,10 @@
 
                             @if (count($items) === 0)
                                 <div class="text-center py-5">
-                                    <img src="/img/c4.webp" alt="Carrito vacío" style="max-width:160px;opacity:.9" class="mb-3">
+                                    
                                     <h4 class="mb-2">Tu carrito está vacío</h4>
                                     <p class="text-muted mb-3">Explora nuestros productos y añade lo que necesites.</p>
-                                    <a href="{{ route('categories.index') ?? url('/') }}" class="btn btn-primary">Ir a la tienda</a>
+                                    <a href="{{ route('dashboard') ?? url('/') }}" class="btn btn-primary">Ir a la tienda</a>
                                 </div>
                             @else
                                 <div class="list-group list-group-flush">
@@ -106,9 +106,18 @@
                     <div class="card shadow-sm sticky-top" style="top:20px">
                         <div class="card-body">
                             <h5 class="mb-3">Resumen de la orden</h5>
+                            @php
+                                // IGV (18%) applied on subtotal
+                                $igv = round($total * 0.18, 2);
+                                $grandTotal = $total + $igv;
+                            @endphp
                             <div class="d-flex justify-content-between mb-2">
                                 <div class="text-muted">Subtotal</div>
                                 <div class="fw-bold">${{ number_format($total, 2) }}</div>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <div class="text-muted">IGV (18%)</div>
+                                <div class="fw-bold">${{ number_format($igv, 2) }}</div>
                             </div>
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="text-muted">Envío</div>
@@ -117,7 +126,7 @@
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="fw-semibold">Total</div>
-                                <div class="h5">${{ number_format($total, 2) }}</div>
+                                <div class="h5">${{ number_format($grandTotal, 2) }}</div>
                             </div>
                             <button class="btn btn-primary w-100 mb-2" id="checkoutBtn" {{ $total == 0 ? 'disabled' : '' }}>Proceder al pago</button>
                             <a href="{{ route('settings.products.index') ?? url('/') }}" class="btn btn-outline-secondary w-100">Seguir comprando</a>
@@ -179,17 +188,21 @@
                             }).then(r => r.json()).then(json => {
                                 if (json && json.success) {
                                     input.value = newQty;
-                                    // actualizar subtotal en DOM
                                     var row = input.closest('.list-group-item');
                                     if(row){
                                         var price = parseFloat(row.querySelector('.text-muted strong').textContent.replace(/[^0-9\.]/g,'')) || 0;
                                         var subtotalEl = row.querySelector('.fw-bold');
                                         if(subtotalEl){ subtotalEl.textContent = '$' + (price * newQty).toFixed(2); }
                                     }
-                                    // actualizar resumen total
-                                    var totalEls = document.querySelectorAll('.card-body .h5');
-                                    // se usará dispatch para que listeners actualicen badge
                                     window.dispatchEvent(new CustomEvent('cart:updated', { detail: { count: json.count, total: json.total } }));
+                                } else if (json && json.allowed_max !== undefined) {
+                                    // el backend indicó un max permitido
+                                    var allowed = json.allowed_max;
+                                    input.value = allowed;
+                                    if (typeof showStockModal === 'function') showStockModal('Stock insuficiente. La cantidad máxima disponible es ' + allowed + '.', 'Stock insuficiente'); else alert('Stock insuficiente. La cantidad máxima disponible es ' + allowed + '.');
+                                    window.dispatchEvent(new CustomEvent('cart:updated', { detail: { count: json.count || 0, total: json.total || 0 } }));
+                                } else if (json && json.success === false && json.message) {
+                                    if (typeof showStockModal === 'function') showStockModal(json.message || 'Operación no permitida', 'Atención'); else alert(json.message || 'Operación no permitida');
                                 }
                             }).catch(console.error);
                         }
@@ -226,5 +239,50 @@
                 });
             })();
         </script>
+        <script>
+            // Redirigir al checkout (usa la fachada en el servidor cuando se cargue la ruta)
+            (function(){
+                var checkoutBtn = document.getElementById('checkoutBtn');
+                if(!checkoutBtn) return;
+                checkoutBtn.addEventListener('click', function(e){
+                    // si está deshabilitado, no hacer nada
+                    if(checkoutBtn.disabled) return;
+                    window.location.href = '{{ route('checkout.index') }}';
+                });
+            })();
+        </script>
+        
+                <!-- Modal de stock (reutilizable) -->
+                <div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="stockModalLabel">Atención</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body" id="stockModalBody">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                        function showStockModal(message, title) {
+                                var label = document.getElementById('stockModalLabel');
+                                var body = document.getElementById('stockModalBody');
+                                if (label && title) label.textContent = title;
+                                if (body) body.textContent = message;
+                                try {
+                                        var modalEl = document.getElementById('stockModal');
+                                        var modal = new bootstrap.Modal(modalEl);
+                                        modal.show();
+                                } catch (err) {
+                                        alert(message);
+                                }
+                        }
+                </script>
     @endsection
 </x-app-layout>

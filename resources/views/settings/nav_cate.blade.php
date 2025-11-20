@@ -439,10 +439,10 @@
         <span class="label">Productos</span>
       </a>
     </li>
-    <li class="nav-item mt-2">
-      <a class="nav-link disabled text-secondary d-flex align-items-center" href="#" tabindex="-1" aria-disabled="true">
-        <span class="me-2">🧾</span>
-        <span class="label">Orders</span>
+    <li class="nav-item mb-1">
+      <a href="{{ route('settings.orders.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('settings.orders.*') ? 'active bg-white text-dark' : 'text-white' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 6h-8l-2-2H3v16h18V6zm-2 10H5V8h4.17L11 9.83V16h8v0z"/></svg>
+        <span class="label">Pedidos</span>
       </a>
     </li>
     </ul>
@@ -488,10 +488,10 @@
       </a>
     </li>
 
-    <li class="nav-item mt-2">
-      <a class="nav-link disabled text-secondary d-flex align-items-center" href="#" tabindex="-1" aria-disabled="true">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h18v2H3zM3 7h18v2H3zM3 11h18v2H3zM3 15h18v2H3z"/></svg>
-        <span class="label">Otros</span>
+    <li class="nav-item mb-1">
+      <a href="{{ route('settings.orders.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('settings.orders.*') ? 'active bg-white text-dark' : 'text-white' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 6h-8l-2-2H3v16h18V6zm-2 10H5V8h4.17L11 9.83V16h8v0z"/></svg>
+        <span class="label">Pedidos</span>
       </a>
     </li>
   </ul>

@@ -44,14 +44,13 @@
                         </div>
 
                         <div style="display:flex;gap:8px;flex-wrap:nowrap;">
-                            <form id="addToCartForm" method="POST" action="{{ route('shopping_carts.add') }}">
+                            <form id="addToCartForm" method="POST" action="{{ route('shopping_carts.add') }}" data-stock="{{ $product->stock ?? '' }}">
                                 @csrf
                                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                                 <input type="hidden" name="quantity" id="formQuantity" value="1">
                                 <button id="addToCartBtn" type="submit" class="btn btn-success" style="background:#10b981;border-color:#10b981;padding:10px 18px;font-weight:700;">Agregar al carrito</button>
+                                <button id="buyNowBtn" name="buy_now" value="1" type="button" class="btn btn-outline-primary" style="margin-left:8px;padding:10px 14px;border-radius:8px;border:1px solid #c7d2fe;color:#374151;background:#fff;">Comprar ahora</button>
                             </form>
-
-                            <a href="#" class="btn btn-outline-primary" style="padding:10px 14px;border-radius:8px;border:1px solid #c7d2fe;color:#374151;background:#fff;">Comprar ahora</a>
                         </div>
                     </div>
 
@@ -140,15 +139,32 @@
             // Interceptar el submit del formulario y enviar via fetch para actualizar badge sin recargar
             const addForm = document.getElementById('addToCartForm');
             const addBtn = document.getElementById('addToCartBtn');
-            if (addForm) {
+            const stockAvailable = addForm ? (addForm.dataset.stock ? parseInt(addForm.dataset.stock) : null) : null;
+                    if (addForm) {
                 addForm.addEventListener('submit', function(e){
                     e.preventDefault();
                     // Deshabilitar botón temporalmente
-                    const originalText = addBtn.innerHTML;
-                    addBtn.disabled = true;
-                    addBtn.innerHTML = 'Agregando...';
+                    const originalText = (addBtn && addBtn.textContent) ? addBtn.textContent.trim() : '';
+                    if(addBtn){ addBtn.disabled = true; addBtn.textContent = 'Agregando...'; }
 
                     const fd = new FormData(addForm);
+                    // validar contra stock antes de hacer la petición
+                    if (stockAvailable !== null) {
+                        const q = parseInt(fd.get('quantity') || 0);
+                        if (q > stockAvailable) {
+                            // mostrar modal de stock
+                            if (typeof showStockModal === 'function') {
+                                showStockModal('No hay suficiente stock. Solo quedan ' + stockAvailable + ' unidades.', 'Stock insuficiente');
+                            } else {
+                                alert('No hay suficiente stock. Solo quedan ' + stockAvailable + ' unidades.');
+                            }
+                            addBtn.innerHTML = originalText;
+                            addBtn.disabled = false;
+                            return;
+                        }
+                    }
+
+                    // NOTE: buyNow handler moved outside submit handler (registered below)
 
                     fetch(addForm.action, {
                         method: 'POST',
@@ -169,22 +185,127 @@
                                 window.dispatchEvent(ev);
                             }
                             // Feedback breve
-                            addBtn.innerHTML = 'Agregado';
-                            setTimeout(()=>{ addBtn.innerHTML = originalText; addBtn.disabled = false; }, 900);
+                            if(addBtn){
+                                addBtn.textContent = 'Agregado';
+                                addBtn.classList.remove('btn-success');
+                                addBtn.classList.add('btn-secondary');
+                            }
+                            // mantener feedback visible un poco más tiempo
+                            setTimeout(()=>{ if(addBtn){ addBtn.textContent = originalText; addBtn.disabled = false; addBtn.classList.remove('btn-secondary'); addBtn.classList.add('btn-success'); } }, 1400);
                         } else {
-                            addBtn.innerHTML = originalText;
-                            addBtn.disabled = false;
-                            alert('No se pudo agregar el producto al carrito.');
+                            // si backend responde con error de stock, ajustar cantidad visible
+                            if (json && json.allowed_add !== undefined) {
+                                var msg = 'Stock insuficiente. Solo se han agregado ' + json.allowed_add + ' unidades adicionales.';
+                                if (typeof showStockModal === 'function') showStockModal(msg, 'Stock insuficiente'); else alert(msg);
+                            } else if (json && json.message) {
+                                if (typeof showStockModal === 'function') showStockModal(json.message, 'Atención'); else alert(json.message);
+                            } else {
+                                alert('No se pudo agregar el producto al carrito.');
+                            }
+                            if(addBtn){ addBtn.textContent = originalText; addBtn.disabled = false; }
                         }
                     }).catch(err => {
                         console.error(err);
-                        addBtn.innerHTML = originalText;
-                        addBtn.disabled = false;
+                        if(addBtn){ addBtn.textContent = originalText; addBtn.disabled = false; }
                         alert('Error de red al agregar al carrito.');
                     });
                 });
             }
+
+            // Register 'Comprar ahora' handler once (outside submit flow) so it doesn't interfere
+            // with the add-to-cart submit handler.
+            (function(){
+                const buyNowBtn = document.getElementById('buyNowBtn');
+                if (!buyNowBtn || !addForm) return;
+
+                buyNowBtn.addEventListener('click', function(e){
+                    e.preventDefault();
+                    const fd = new FormData(addForm);
+                    // validate stock
+                    if (stockAvailable !== null) {
+                        const q = parseInt(fd.get('quantity') || 0);
+                        if (q > stockAvailable) {
+                            if (typeof showStockModal === 'function') showStockModal('No hay suficiente stock. Solo quedan ' + stockAvailable + ' unidades.', 'Stock insuficiente'); else alert('No hay suficiente stock. Solo quedan ' + stockAvailable + ' unidades.');
+                            return;
+                        }
+                    }
+
+                    const originalBuyText = buyNowBtn.textContent.trim();
+                    buyNowBtn.textContent = 'Procesando...';
+                    buyNowBtn.disabled = true;
+
+                    fetch(addForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        body: fd,
+                        credentials: 'same-origin'
+                    }).then(r => r.json()).then(json => {
+                        if (json && json.success) {
+                            if (window.updateCartBadge && typeof window.updateCartBadge === 'function') {
+                                window.updateCartBadge(json.count);
+                            } else {
+                                window.dispatchEvent(new CustomEvent('cart:updated', { detail: { count: json.count, total: json.total } }));
+                            }
+                            // redirect to checkout
+                            window.location.href = '{{ route('checkout.index') }}';
+                        } else {
+                            if (json && json.allowed_add !== undefined) {
+                                var msg = 'Stock insuficiente. Solo se han agregado ' + json.allowed_add + ' unidades adicionales.';
+                                if (typeof showStockModal === 'function') showStockModal(msg, 'Stock insuficiente'); else alert(msg);
+                            } else if (json && json.message) {
+                                if (typeof showStockModal === 'function') showStockModal(json.message, 'Atención'); else alert(json.message);
+                            } else {
+                                alert('No se pudo proceder al pago.');
+                            }
+                            buyNowBtn.textContent = originalBuyText;
+                            buyNowBtn.disabled = false;
+                        }
+                    }).catch(err => {
+                        console.error(err);
+                        buyNowBtn.textContent = originalBuyText;
+                        buyNowBtn.disabled = false;
+                        alert('Error de red al intentar procesar la compra.');
+                    });
+                });
+            })();
         })();
     </script>
+
+        <!-- Modal de stock -->
+        <div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="stockModalLabel">Atención</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body" id="stockModalBody">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+                // helper para mostrar modal de stock si Bootstrap está disponible
+                function showStockModal(message, title) {
+                        var label = document.getElementById('stockModalLabel');
+                        var body = document.getElementById('stockModalBody');
+                        if (label && title) label.textContent = title;
+                        if (body) body.textContent = message;
+                        try {
+                                var modalEl = document.getElementById('stockModal');
+                                var modal = new bootstrap.Modal(modalEl);
+                                modal.show();
+                        } catch (err) {
+                                alert(message);
+                        }
+                }
+        </script>
 
 </x-app-layout>
