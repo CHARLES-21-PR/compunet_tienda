@@ -31,7 +31,7 @@
 				@else
 					<div class="d-flex justify-content-between align-items-center mb-2">
 						<div class="settings-pagination-top w-100 d-flex justify-content-end">
-							{{ $orders->links('pagination::bootstrap-5') }}
+							{!! str_replace('<nav', '<nav style="background: rgba(33, 37, 41, 0.75); padding: .15rem .5rem; border-radius:10px; color: #fff; --bs-pagination-color: #fff; --bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.06); --bs-pagination-hover-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.04); --bs-pagination-active-color: #0f172a; --bs-pagination-active-bg: #eef2ff;"', $orders->links('pagination::bootstrap-5')) !!}
 						</div>
 					</div>
 
@@ -66,15 +66,21 @@
 								<td>{{ number_format($o->total,2) }}</td>
 								@php
 									$statusMap = [
-										'paid' => ['label' => 'Pagado', 'class' => 'success'],
-										'delivered' => ['label' => 'Entregado', 'class' => 'primary'],
-										'cancelled' => ['label' => 'Cancelado', 'class' => 'danger'],
-										'failed' => ['label' => 'Fallido', 'class' => 'warning'],
+										'pagado' => ['label' => 'Pagado', 'class' => 'success'],
+										'entregado' => ['label' => 'Entregado', 'class' => 'primary'],
+										'cancelado' => ['label' => 'Cancelado', 'class' => 'danger'],
+										'fallido' => ['label' => 'Fallido', 'class' => 'danger'],
+										'pendiente' => ['label' => 'Pendiente', 'class' => 'warning'],
 									];
-									$st = $o->status;
-									$badge = $statusMap[$st] ?? ['label' => ucfirst($st), 'class' => 'secondary'];
+									$st = strtolower($o->status ?? '');
+									// accept English and Spanish keys
+									$aliases = [
+										'paid' => 'pagado', 'delivered' => 'entregado', 'cancelled' => 'cancelado', 'failed' => 'fallido', 'pending' => 'pendiente'
+									];
+									if (isset($aliases[$st])) $st = $aliases[$st];
+									$badge = $statusMap[$st] ?? ['label' => ucfirst($st ?: 'Pendiente'), 'class' => 'secondary'];
 								@endphp
-								<td><span class="badge bg-{{ $badge['class'] }} @if($badge['class']==='warning') text-dark @endif">{{ $badge['label'] }}</span></td>
+								<td><span class="badge bg-{{ $badge['class'] }} @if($badge['class']==='warning' || $badge['class']==='info') text-dark @endif">{{ $badge['label'] }}</span></td>
 								<td>{{ $o->created_at->format('Y-m-d H:i') }}</td>
 								<td>
 									<a href="{{ route('settings.orders.show', $o->id) }}" class="btn btn-sm btn-secondary">Ver</a>
@@ -168,7 +174,7 @@
 
 		document.addEventListener('click', handlePaginationClick);
 
-		// Handle generate+download buttons from index (delegated)
+		
 		document.addEventListener('click', function(e){
 			const btn = e.target.closest('.generate-download-btn');
 			if(!btn) return;
@@ -176,7 +182,7 @@
 			const orderId = btn.getAttribute('data-order-id');
 			if(!orderId) return;
 			btn.disabled = true; btn.textContent = 'Generando...';
-			// Build headers safely (meta tag may be missing in some layouts)
+	
 			const csrfMeta = document.querySelector('meta[name="csrf-token"]');
 			const headers = { 'Accept': 'application/json' };
 			if (csrfMeta && csrfMeta.getAttribute('content')) headers['X-CSRF-TOKEN'] = csrfMeta.getAttribute('content');
@@ -187,12 +193,12 @@
 				credentials: 'same-origin'
 			}).then(r => {
 				if (!r.ok) {
-					// try to get text for debugging
+					
 					return r.text().then(t => { throw new Error('HTTP ' + r.status + ': ' + (t || r.statusText)); });
 				}
 				const ct = r.headers.get('Content-Type') || '';
 				if (ct.includes('application/json')) return r.json();
-				// sometimes Laravel returns HTML on error; try parse JSON otherwise throw
+				
 				return r.text().then(txt => {
 					try { return JSON.parse(txt); } catch (e) { throw new Error('Respuesta inválida del servidor'); }
 				});
@@ -213,8 +219,7 @@
 								return;
 							}
 
-							// If no PDF declared in response, attempt to fetch the export endpoint and prefer PDF when available.
-							// We'll try a few times to allow server-side PDF generation to finish.
+							
 							if (invoiceId) {
 								const exportUrl = "{{ url('/settings/orders') }}" + "/" + orderId + "/invoice/xml";
 								const tryDownload = async (attemptsLeft) => {
@@ -234,9 +239,9 @@
 											URL.revokeObjectURL(url);
 											return true;
 										}
-										// if we got XML or other, consider retrying a few times before giving up
+									
 										if (attemptsLeft > 0) {
-											// small delay and retry
+											
 											await new Promise(r => setTimeout(r, 1000));
 											return tryDownload(attemptsLeft - 1);
 										}
@@ -252,7 +257,7 @@
 
 								tryDownload(3).then(foundPdf => {
 									if (!foundPdf) {
-										// fallback to original XML download (will trigger download or show XML page)
+										
 										window.location = exportUrl;
 									}
 								});
@@ -262,17 +267,17 @@
 
 						window.location = "{{ url('/settings/orders') }}"+"/"+orderId+"/invoice/xml";
 					} else {
-						alert('No se pudo generar la factura: ' + ((data && data.message) || 'Error'));
+						showAlertOrders('Error', 'No se pudo generar la factura: ' + ((data && data.message) || 'Error'));
 						btn.disabled = false; btn.textContent = 'Generar y descargar PDF';
 					}
 			}).catch(err=>{
 				console.error('Error al generar factura (AJAX):', err);
-				alert('Error al generar factura: ' + (err.message || 'Error de red'));
+				showAlertOrders('Error', 'Error al generar factura: ' + (err.message || 'Error de red'));
 				btn.disabled = false; btn.textContent = 'Generar y descargar PDF';
 			});
 		});
 
-		// support back/forward
+		
 		window.addEventListener('popstate', function(e){
 			const url = location.href;
 			fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' }, credentials: 'same-origin' })
@@ -285,6 +290,55 @@
 				}).catch(()=>{ /* ignore, let native navigation handle it */ });
 		});
 	})();
+</script>
+
+<!-- Modal genérico de alertas  -->
+<div class="modal fade" id="ordersAlertModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content orders-modal">
+			<div class="modal-header" style="border-bottom:none;">
+				<div style="display:flex; align-items:center; gap:.6rem">
+					<div style="width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#7c3aed,#06b6d4); border-radius:10px; box-shadow:0 6px 18px rgba(6,11,40,0.12); color:white;">
+						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14zm.93-9.412-1 4a.5.5 0 0 1-.97 0l-1-4A.5.5 0 0 1 6.5 5h3a.5.5 0 0 1 .43.588zM8 4.5a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5z"/></svg>
+					</div>
+					<h5 class="modal-title" id="ordersAlertModalTitle">Atención</h5>
+				</div>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+			</div>
+			<div class="modal-body" id="ordersAlertModalBody" style="padding:1.6rem 1.6rem; font-size:0.98rem; color:#0f172a; background:linear-gradient(180deg,#fff,#f8fafc);">
+			</div>
+			<div class="modal-footer" style="border-top:none;">
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+/* Modern styles for orders alert modal */
+#ordersAlertModal .modal-dialog { max-width:520px; }
+#ordersAlertModal .modal-content.orders-modal { border-radius:14px; overflow:hidden; box-shadow:0 12px 40px rgba(2,6,23,0.28); border:0; }
+#ordersAlertModal .modal-title { margin:0; font-weight:700; font-size:1.05rem; color:#0f172a; }
+#ordersAlertModal .modal-body { color:#0f172a; }
+#ordersAlertModal .modal-footer { background:transparent; padding:1rem 1.4rem; }
+#ordersAlertModal .btn-primary { background: linear-gradient(90deg,#6366f1,#06b6d4); border:0; box-shadow:0 6px 18px rgba(99,102,241,0.18); }
+#ordersAlertModal .btn-close { filter:grayscale(1) opacity(.6); }
+</style>
+<script>
+	function showAlertOrders(title, message){
+		try {
+			var modalEl = document.getElementById('ordersAlertModal');
+			if (!modalEl) throw new Error('no-modal');
+			var mt = document.getElementById('ordersAlertModalTitle');
+			var mb = document.getElementById('ordersAlertModalBody');
+			if (mt) mt.textContent = title || 'Atención';
+			if (mb) mb.textContent = message || '';
+			var bsModal = new bootstrap.Modal(modalEl);
+			bsModal.show();
+		} catch (e) {
+			alert(message || title || 'Atención');
+		}
+	}
 </script>
 
 @endsection

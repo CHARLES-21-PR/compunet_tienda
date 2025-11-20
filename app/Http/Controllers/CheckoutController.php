@@ -6,11 +6,15 @@ use Illuminate\Http\Request;
 use App\Facades\CheckoutFacade as Checkout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
     public function index()
     {
+        // Debug: log current cart state to help diagnose mismatches between cart icon and checkout items
+        Log::debug('checkout.index session debug', ['cart' => session('cart'), 'cart_selected' => session('cart_selected')]);
+
         // ejemplo: preparar orden usando el resolver de precios (closure)
         $result = Checkout::prepareOrder(function($item){
             // si $item tiene price en session, use eso, sino buscar producto
@@ -56,10 +60,13 @@ class CheckoutController extends Controller
             'phone' => 'nullable|string'
         ]);
 
-        // Require at least dni or ruc for fiscal documents
-        if (empty($payload['dni']) && empty($payload['ruc'])) {
-            if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Debe proporcionar DNI (para boleta) o RUC (para factura) antes de pagar.'], 422);
-            return back()->with('error', 'Debe proporcionar DNI (para boleta) o RUC (para factura) antes de pagar.');
+        // Require at least dni or ruc for fiscal documents unless payment method is Yape (manual upload)
+        $paymentMethod = $payload['payment_method'] ?? '';
+        if ($paymentMethod !== 'yape') {
+            if (empty($payload['dni']) && empty($payload['ruc'])) {
+                if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Debe proporcionar DNI (para boleta) o RUC (para factura) antes de pagar.'], 422);
+                return back()->with('error', 'Debe proporcionar DNI (para boleta) o RUC (para factura) antes de pagar.');
+            }
         }
         // preparar orden desde carrito
         $cartService = app(\App\Services\CartService::class);
@@ -76,9 +83,16 @@ class CheckoutController extends Controller
         $igv = round($subtotal * 0.18, 2);
         $totalWithIgv = round($subtotal + $igv, 2);
 
+        // Restricción: Yape sólo permitido para pedidos hasta S/.500 (<= 500). Si es mayor, rechazar.
+        if (($paymentMethod === 'yape') && ($totalWithIgv > 500)) {
+            if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Yape sólo está disponible para pedidos hasta S/.500.'], 422);
+            return back()->with('error', 'Yape sólo está disponible para pedidos hasta S/.500.');
+        }
+
         // crear orden en DB (total incluye IGV)
-        $paymentMethod = $payload['payment_method'] ?? '';
-        $initialStatus = ($paymentMethod === 'yape') ? 'pending' : 'processing';
+        // paymentMethod already computed above
+        // usar estados en español: si es Yape -> 'pendiente', si es tarjeta -> 'pagado'
+        $initialStatus = ($paymentMethod === 'yape') ? 'pendiente' : 'pagado';
         $shipping = [
             'name' => $payload['customer_name'] ?? null,
             'dni' => $payload['dni'] ?? null,
@@ -132,7 +146,7 @@ class CheckoutController extends Controller
                 'method' => 'yape',
                 'transaction_id' => null,
                 'amount' => $totalWithIgv,
-                'status' => 'pending',
+                'status' => 'pendiente',
                 'metadata' => json_encode(['receipt_path' => $path]),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -142,8 +156,8 @@ class CheckoutController extends Controller
             // Standard flow: charge payment, decrement stock, mark paid and create invoice
             $charge = Checkout::chargePayment($payload);
             if (empty($charge['success'])) {
-                // marcar orden como failed
-                DB::table('orders')->where('id', $orderId)->update(['status' => 'failed']);
+                // marcar orden como fallido
+                DB::table('orders')->where('id', $orderId)->update(['status' => 'fallido']);
                 if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Pago rechazado'], 402);
                 return back()->with('error', 'Pago rechazado');
             }
@@ -161,16 +175,16 @@ class CheckoutController extends Controller
             }
 
             if (! empty($stockErrors)) {
-                // marcar orden como failed si no se pudo decrementar stock
-                DB::table('orders')->where('id', $orderId)->update(['status' => 'failed']);
+                // marcar orden como fallido si no se pudo decrementar stock
+                DB::table('orders')->where('id', $orderId)->update(['status' => 'fallido']);
                 $names = implode(', ', $stockErrors);
                 $msg = 'No fue posible reservar stock para: ' . $names . '. Pedido marcado como fallido.';
                 if ($request->wantsJson()) return response()->json(['success' => false, 'message' => $msg], 409);
                 return back()->with('error', $msg);
             }
 
-            // marcar orden como paid (stock actualizado correctamente)
-            DB::table('orders')->where('id', $orderId)->update(['status' => 'paid']);
+            // marcar orden como pagado (stock actualizado correctamente)
+            DB::table('orders')->where('id', $orderId)->update(['status' => 'pagado']);
 
             // crear invoice: pasar solo datos sanitizados de pago (método y transaction id)
             $paymentInfo = [
@@ -186,8 +200,36 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // limpiar carrito
-        $cartService->clear();
+        // Remove only the purchased items from the persistent cart (do not clear everything)
+        try {
+            $persistent = session('cart', []);
+            if (is_array($persistent) && !empty($persistent)) {
+                foreach ($prepare['items'] as $it) {
+                    $pid = null;
+                    if (is_array($it) && isset($it['product'])) {
+                        $prod = $it['product'];
+                        $pid = is_object($prod) ? ($prod->id ?? null) : ($prod['id'] ?? null);
+                    } elseif (is_array($it) && isset($it['product_id'])) {
+                        $pid = $it['product_id'];
+                    } elseif (is_array($it) && isset($it['id'])) {
+                        $pid = $it['id'];
+                    } elseif (is_object($it) && isset($it->product->id)) {
+                        $pid = $it->product->id;
+                    }
+
+                    if ($pid !== null && isset($persistent[$pid])) {
+                        unset($persistent[$pid]);
+                    }
+                }
+                session(['cart' => $persistent]);
+            }
+        } catch (\Throwable $e) {
+            // fallback: if anything fails, do not clear the cart to avoid data loss
+            Log::error('Error removing purchased items from cart: ' . $e->getMessage());
+        }
+
+        // Also clear any temporary selected items for checkout
+        session()->forget('cart_selected');
 
         // flash session for showing the success modal on arrival
         $redirectUrl = route('checkout.success', ['order' => $orderId]);

@@ -66,10 +66,22 @@
                                     <a href="{{ route('dashboard') ?? url('/') }}" class="btn btn-primary">Ir a la tienda</a>
                                 </div>
                             @else
+                                <div class="mb-2 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label class="form-check form-check-inline mb-0">
+                                            <input class="form-check-input" type="checkbox" id="selectAllItems" />
+                                            <span class="form-check-label">Seleccionar todo</span>
+                                        </label>
+                                    </div>
+                                    <div class="text-muted small">Selecciona los productos que deseas pagar</div>
+                                </div>
                                 <div class="list-group list-group-flush">
                                     @foreach ($items as $it)
                                         <div class="list-group-item py-3">
                                             <div class="d-flex gap-3 align-items-center">
+                                                <div style="flex:0 0 32px">
+                                                    <input type="checkbox" class="form-check-input select-item" data-key="{{ $it['key'] }}" />
+                                                </div>
                                                 <img src="{{ $it['image'] }}" alt="{{ $it['name'] }}" style="width:96px;height:96px;object-fit:cover;border-radius:8px">
                                                 <div class="flex-grow-1">
                                                     <div class="d-flex justify-content-between align-items-start">
@@ -103,7 +115,7 @@
                 </div>
 
                 <div class="col-12 col-lg-4">
-                    <div class="card shadow-sm sticky-top" style="top:20px">
+                    <div class="card shadow-sm sticky-top z-1" style="top:20px">
                         <div class="card-body">
                             <h5 class="mb-3">Resumen de la orden</h5>
                             @php
@@ -113,11 +125,11 @@
                             @endphp
                             <div class="d-flex justify-content-between mb-2">
                                 <div class="text-muted">Subtotal</div>
-                                <div class="fw-bold">${{ number_format($total, 2) }}</div>
+                                <div class="fw-bold">$<span id="subtotalAmount">{{ number_format($total, 2) }}</span></div>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <div class="text-muted">IGV (18%)</div>
-                                <div class="fw-bold">${{ number_format($igv, 2) }}</div>
+                                <div class="fw-bold">$<span id="igvAmount">{{ number_format($igv, 2) }}</span></div>
                             </div>
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="text-muted">Envío</div>
@@ -126,10 +138,10 @@
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="fw-semibold">Total</div>
-                                <div class="h5">${{ number_format($grandTotal, 2) }}</div>
+                                <div class="h5">$<span id="grandTotalAmount">{{ number_format($grandTotal, 2) }}</span></div>
                             </div>
                             <button class="btn btn-primary w-100 mb-2" id="checkoutBtn" {{ $total == 0 ? 'disabled' : '' }}>Proceder al pago</button>
-                            <a href="{{ route('settings.products.index') ?? url('/') }}" class="btn btn-outline-secondary w-100">Seguir comprando</a>
+                            <a href="{{ route('dashboard') ?? url('/') }}" class="btn btn-outline-secondary w-100">Seguir comprando</a>
                         </div>
                     </div>
                 </div>
@@ -247,8 +259,91 @@
                 checkoutBtn.addEventListener('click', function(e){
                     // si está deshabilitado, no hacer nada
                     if(checkoutBtn.disabled) return;
-                    window.location.href = '{{ route('checkout.index') }}';
+
+                    // recoger seleccionados
+                    var checked = Array.from(document.querySelectorAll('.select-item:checked')).map(function(cb){ return cb.getAttribute('data-key'); });
+                    if (checked.length === 0) {
+                        // si no hay seleccionados, pedir al usuario que seleccione o proceder con todo
+                        showStockModal('Selecciona al menos un producto para continuar, o selecciona todo.', 'Seleccionar productos');
+                        return;
+                    }
+
+                    // enviar selección al servidor para que el checkout muestre solo esos ítems
+                    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                    var token = csrfMeta ? csrfMeta.getAttribute('content') : '';
+                    fetch('{{ url('/shopping-cart/checkout-selected') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ selected: checked })
+                    }).then(function(r){
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    }).then(function(json){
+                        if (json && json.success) {
+                            window.location.href = '{{ route('checkout.index') }}';
+                        } else {
+                            showStockModal((json && json.message) ? json.message : 'No se pudo preparar la selección para el pago', 'Error');
+                        }
+                    }).catch(function(err){
+                        console.error(err);
+                        showStockModal('Error de red. Intenta nuevamente.', 'Error');
+                    });
                 });
+
+                // select all handler
+                var selectAll = document.getElementById('selectAllItems');
+                if (selectAll) {
+                    selectAll.addEventListener('change', function(){
+                        var checked = !!this.checked;
+                        document.querySelectorAll('.select-item').forEach(function(cb){ cb.checked = checked; });
+                        recalcSelectedSummary();
+                    });
+                }
+                
+                // Recalculate selected summary (subtotal, igv, total)
+                function parseCurrency(text){ return parseFloat((text||'').toString().replace(/[^0-9\.\-]/g,'')) || 0; }
+                function recalcSelectedSummary(){
+                    var selected = Array.from(document.querySelectorAll('.select-item:checked'));
+                    // sum subtotals from rows
+                    var subtotal = 0;
+                    selected.forEach(function(cb){
+                        var key = cb.getAttribute('data-key');
+                        var row = cb.closest('.list-group-item');
+                        if (!row) return;
+                        var subEl = row.querySelector('.fw-bold');
+                        if (subEl) {
+                            subtotal += parseCurrency(subEl.textContent);
+                        }
+                    });
+                    var igv = +(subtotal * 0.18).toFixed(2);
+                    var grand = +(subtotal + igv).toFixed(2);
+                    // update DOM
+                    var subEl = document.getElementById('subtotalAmount'); if (subEl) subEl.textContent = subtotal.toFixed(2);
+                    var igvEl = document.getElementById('igvAmount'); if (igvEl) igvEl.textContent = igv.toFixed(2);
+                    var grandEl = document.getElementById('grandTotalAmount'); if (grandEl) grandEl.textContent = grand.toFixed(2);
+                    // enable/disable checkout button
+                    var btn = document.getElementById('checkoutBtn'); if (btn) btn.disabled = (subtotal <= 0);
+                }
+
+                // listen for changes on item selection and quantity updates
+                document.addEventListener('change', function(e){
+                    if (e.target.matches('.select-item')) return recalcSelectedSummary();
+                    if (e.target.matches('.qty-input')) return recalcSelectedSummary();
+                });
+
+                // also respond to custom cart:updated events (qty changed via ajax)
+                window.addEventListener('cart:updated', function(){ recalcSelectedSummary(); });
+
+                // initialize: mark all as selected and recalc
+                document.querySelectorAll('.select-item').forEach(function(cb){ cb.checked = true; });
+                if (selectAll) selectAll.checked = true;
+                recalcSelectedSummary();
             })();
         </script>
         

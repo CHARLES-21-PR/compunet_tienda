@@ -55,6 +55,8 @@ Route::post('/shopping-cart/add', [\App\Http\Controllers\ShoppingCartController:
 Route::post('/shopping-cart/update', [\App\Http\Controllers\ShoppingCartController::class, 'update'])->name('shopping_carts.update');
 // Eliminar item del carrito
 Route::post('/shopping-cart/remove', [\App\Http\Controllers\ShoppingCartController::class, 'remove'])->name('shopping_carts.remove');
+// Preparar checkout con items seleccionados
+Route::post('/shopping-cart/checkout-selected', [\App\Http\Controllers\ShoppingCartController::class, 'checkoutSelected'])->name('shopping_carts.checkout_selected');
 
 Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(function () {
     Route::get('/settings/categories', [CategorySettingsController::class,'index'])->name('settings.categories.index');

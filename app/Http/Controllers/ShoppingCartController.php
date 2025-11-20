@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\Product;
 
 class ShoppingCartController extends Controller
@@ -55,33 +56,36 @@ class ShoppingCartController extends Controller
             }
         }
 
-        $cart = session('cart', []);
+        $isBuyNow = $request->boolean('buy_now');
 
         $key = $product->id;
-        $isBuyNow = $request->boolean('buy_now');
-        if (isset($cart[$key])) {
-            if ($isBuyNow) {
-                // For 'buy now' replace the quantity with the requested amount
-                $cart[$key]['quantity'] = $qty;
-            } else {
-                $cart[$key]['quantity'] = intval($cart[$key]['quantity']) + $qty;
-            }
+        $itemData = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'price' => $product->price,
+            'quantity' => $qty,
+            'image' => $product->image ? $product->image : null,
+        ];
+
+        if ($isBuyNow) {
+            // Do not alter the stored cart for 'buy now'. Create a temporary selection
+            // used only for immediate checkout so the user's cart (badge/count) remains.
+            session(['cart_selected' => [$key => $itemData]]);
         } else {
-            $cart[$key] = [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'quantity' => $qty,
-                'image' => $product->image ? $product->image : null,
-            ];
+            $cart = session('cart', []);
+            if (isset($cart[$key])) {
+                $cart[$key]['quantity'] = intval($cart[$key]['quantity']) + $qty;
+            } else {
+                $cart[$key] = $itemData;
+            }
+            session(['cart' => $cart]);
         }
 
-        session(['cart' => $cart]);
-
-        // Totales simples
-        $count = array_sum(array_column($cart, 'quantity'));
+        // Totales simples: calcular sobre el carrito persistente (no sobre la selección temporal)
+        $persistentCart = session('cart', []);
+        $count = $persistentCart ? array_sum(array_column($persistentCart, 'quantity')) : 0;
         $total = 0;
-        foreach ($cart as $item) {
+        foreach ($persistentCart as $item) {
             $total += ($item['quantity'] * $item['price']);
         }
 
@@ -163,5 +167,65 @@ class ShoppingCartController extends Controller
         }
 
         return response()->json(['success' => true, 'count' => $count, 'total' => round($total,2)]);
+    }
+
+    /**
+     * Prepare checkout with selected cart keys (session)
+     * Accepts JSON { selected: [key1, key2, ...] }
+     */
+    public function checkoutSelected(Request $request)
+    {
+        $data = $request->validate([
+            'selected' => 'required|array|min:1'
+        ]);
+
+        $selected = $data['selected'];
+        $cart = session('cart', []);
+        if (!is_array($cart) || empty($cart)) {
+            return response()->json(['success' => false, 'message' => 'El carrito está vacío'], 422);
+        }
+
+        $new = [];
+        foreach ($selected as $k) {
+            // if frontend sent the exact session key
+            if (isset($cart[$k])) {
+                $new[$k] = $cart[$k];
+                continue;
+            }
+
+            // if frontend sent a numeric id or string id, try to match by 'id' or 'product_id' inside cart entries
+            foreach ($cart as $ck => $entry) {
+                // entry may be array with 'id' or 'product_id'
+                if (is_array($entry)) {
+                    if (isset($entry['id']) && ((string)$entry['id'] === (string)$k)) {
+                        $new[$ck] = $entry; break;
+                    }
+                    if (isset($entry['product_id']) && ((string)$entry['product_id'] === (string)$k)) {
+                        $new[$ck] = $entry; break;
+                    }
+                } else {
+                    // entry could be object-like
+                    if (isset($entry->id) && ((string)$entry->id === (string)$k)) {
+                        $new[$ck] = (array)$entry; break;
+                    }
+                }
+            }
+        }
+
+        // Log for debugging if selection doesn't match
+        if (empty($new)) {
+            Log::debug('checkoutSelected: no matches', ['selected' => $selected, 'cart_keys' => array_keys($cart)]);
+        } else {
+            Log::debug('checkoutSelected: matched items', ['selected' => $selected, 'matched_keys' => array_keys($new)]);
+        }
+
+        if (empty($new)) {
+            return response()->json(['success' => false, 'message' => 'No se encontraron los productos seleccionados en el carrito'], 422);
+        }
+
+        // Store selected items separately (non-destructive): use 'cart_selected'
+        session(['cart_selected' => $new]);
+
+        return response()->json(['success' => true]);
     }
 }

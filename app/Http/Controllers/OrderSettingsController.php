@@ -13,10 +13,18 @@ class OrderSettingsController extends Controller
     {
         $query = Order::with('invoice')->orderBy('created_at', 'desc');
 
-        // filter by status if provided
+        // filter by status if provided. Accept Spanish and English keys (map aliases)
         $status = $request->query('status');
         if ($status) {
-            $query->where('status', $status);
+            $s = strtolower($status);
+            $aliases = [
+                'paid' => 'pagado', 'delivered' => 'entregado', 'cancelled' => 'cancelado', 'failed' => 'fallido', 'pending' => 'pendiente',
+                'pagado' => 'paid', 'entregado' => 'delivered', 'cancelado' => 'cancelled', 'fallido' => 'failed', 'pendiente' => 'pending'
+            ];
+            $candidates = [$s];
+            if (isset($aliases[$s])) $candidates[] = $aliases[$s];
+            // query DB for any of the candidate status values
+            $query->whereIn('status', $candidates);
         }
 
         $orders = $query->paginate(20)->withQueryString();
@@ -31,8 +39,8 @@ class OrderSettingsController extends Controller
             // fallback to config
         }
         if (empty($availableStatuses)) {
-            // fallback default statuses
-            $defaults = ['paid' => 'Pagado', 'delivered' => 'Entregado', 'cancelled' => 'Cancelado', 'failed' => 'Fallido'];
+            // fallback default statuses (usamos claves en español)
+            $defaults = ['pagado' => 'Pagado', 'entregado' => 'Entregado', 'cancelado' => 'Cancelado', 'fallido' => 'Fallido', 'pendiente' => 'Pendiente'];
             foreach ($defaults as $k => $v) $availableStatuses[$k] = $v;
         }
         return view('settings.orders.index', compact('orders','availableStatuses'));
@@ -62,7 +70,8 @@ class OrderSettingsController extends Controller
         try {
             $allowed = \App\Models\OrderStatus::pluck('key')->toArray();
         } catch (\Throwable $e) {
-            $allowed = ['paid','delivered','cancelled','failed'];
+            // fallback to spanish keys
+            $allowed = ['pagado','entregado','cancelado','fallido','pendiente'];
         }
         $data = $request->validate([
             'status' => ['required','string','in:'.implode(',', $allowed)]
@@ -100,6 +109,11 @@ class OrderSettingsController extends Controller
         $order = Order::find($id);
         if (! $order) {
             return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+        }
+
+        // Only allow invoice generation for orders that are paid
+        if (($order->status ?? '') !== 'pagado') {
+            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Solo se puede generar factura para pedidos con estado "pagado".');
         }
 
         try {
@@ -307,6 +321,11 @@ class OrderSettingsController extends Controller
             return response()->json(['success' => false, 'message' => 'Orden no encontrada'], 404);
         }
 
+        // Only allow invoice generation for orders that are paid
+        if (($order->status ?? '') !== 'pagado') {
+            return response()->json(['success' => false, 'message' => 'Solo se puede generar factura para pedidos con estado "pagado".'], 422);
+        }
+
         try {
             $invoiceService = app(\App\Services\InvoiceService::class);
             $res = $invoiceService->createInvoice(['order_id' => $order->id]);
@@ -343,6 +362,11 @@ class OrderSettingsController extends Controller
         $order = Order::find($id);
         if (! $order) {
             return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+        }
+
+        // Only allow invoice generation for orders that are paid
+        if (($order->status ?? '') !== 'pagado') {
+            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Solo se puede generar factura para pedidos con estado "pagado".');
         }
 
         try {

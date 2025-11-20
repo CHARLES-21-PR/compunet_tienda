@@ -8,6 +8,11 @@ class CartService
 
     public function getCart(): array
     {
+        // If a selection for checkout exists, prefer it (non-destructive selection)
+        $selected = session('cart_selected');
+        if (is_array($selected) && !empty($selected)) {
+            return $selected;
+        }
         return session($this->sessionKey, []);
     }
 

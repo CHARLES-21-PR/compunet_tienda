@@ -69,6 +69,24 @@
                                             <div class="mt-3">
                                                 <div class="small text-muted">Pago</div>
                                                 <div class="fw-medium">{{ $payment->transaction_id ?? $payment->id }} <span class="small text-capitalize text-muted">— {{ $payment->status }}</span></div>
+                                                @php
+                                                    // Try to extract uploaded receipt for Yape
+                                                    $paymentMeta = null;
+                                                    try { $paymentMeta = is_string($payment->metadata) ? json_decode($payment->metadata, true) : $payment->metadata; } catch (\Throwable $e) { $paymentMeta = null; }
+                                                    $receiptPath = $paymentMeta['receipt_path'] ?? null;
+                                                @endphp
+                                                @if(!empty($receiptPath))
+                                                    @php
+                                                        if (preg_match('#^https?://#i', $receiptPath)) {
+                                                            $receiptUrl = $receiptPath;
+                                                        } else {
+                                                            $receiptUrl = asset('storage/' . ltrim($receiptPath, '/'));
+                                                        }
+                                                    @endphp
+                                                    <div class="mt-2">
+                                                        <a href="{{ $receiptUrl }}" target="_blank" class="btn btn-sm btn-outline-success">Ver comprobante (voucher)</a>
+                                                    </div>
+                                                @endif
                                             </div>
                                         @endif
 
