@@ -218,9 +218,11 @@
                 const buyNowBtn = document.getElementById('buyNowBtn');
                 if (!buyNowBtn || !addForm) return;
 
-                buyNowBtn.addEventListener('click', function(e){
+                    buyNowBtn.addEventListener('click', function(e){
                     e.preventDefault();
                     const fd = new FormData(addForm);
+                        // Indicate this is a 'buy now' intent so backend can validate accordingly
+                        fd.append('buy_now', '1');
                     // validate stock
                     if (stockAvailable !== null) {
                         const q = parseInt(fd.get('quantity') || 0);

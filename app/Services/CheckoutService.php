@@ -33,7 +33,14 @@ class CheckoutService
             if (!$product) continue;
             $available = $this->inventory->available($product);
             if ($entry['quantity'] > $available) {
-                return ['success' => false, 'message' => 'Stock insuficiente para ' . $product->name, 'product_id' => $product->id, 'available' => $available];
+                return [
+                    'success' => false,
+                    'message' => 'Stock insuficiente para ' . $product->name,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'requested' => intval($entry['quantity']),
+                    'available' => $available,
+                ];
             }
             $price = $priceResolver($entry);
             $items[] = ['product' => $product, 'quantity' => $entry['quantity'], 'price' => $price];

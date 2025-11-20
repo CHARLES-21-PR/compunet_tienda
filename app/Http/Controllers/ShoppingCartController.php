@@ -40,9 +40,13 @@ class ShoppingCartController extends Controller
             // cantidad existente en carrito
             $cart = session('cart', []);
             $existing = isset($cart[$product->id]) ? intval($cart[$product->id]['quantity']) : 0;
-            $requestedTotal = $existing + $qty;
+            // If this is a 'buy now' action, validate only against requested qty (do not add existing),
+            // because user intent is to purchase the displayed quantity now (and frontend will redirect to checkout).
+            $isBuyNow = $request->boolean('buy_now');
+            $requestedTotal = $isBuyNow ? $qty : ($existing + $qty);
             if ($requestedTotal > intval($product->stock)) {
-                $allowed = intval($product->stock) - $existing;
+                // allowed_add: how many additional units can be added to current cart (for non-buy-now)
+                $allowed = $isBuyNow ? intval($product->stock) : (intval($product->stock) - $existing);
                 if ($allowed < 0) $allowed = 0;
                 if ($request->wantsJson() || $request->header('Accept') === 'application/json') {
                     return response()->json(['success' => false, 'message' => 'Stock insuficiente', 'allowed_add' => $allowed, 'allowed_total' => intval($product->stock)], 422);
@@ -54,8 +58,14 @@ class ShoppingCartController extends Controller
         $cart = session('cart', []);
 
         $key = $product->id;
+        $isBuyNow = $request->boolean('buy_now');
         if (isset($cart[$key])) {
-            $cart[$key]['quantity'] = intval($cart[$key]['quantity']) + $qty;
+            if ($isBuyNow) {
+                // For 'buy now' replace the quantity with the requested amount
+                $cart[$key]['quantity'] = $qty;
+            } else {
+                $cart[$key]['quantity'] = intval($cart[$key]['quantity']) + $qty;
+            }
         } else {
             $cart[$key] = [
                 'id' => $product->id,

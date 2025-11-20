@@ -47,6 +47,7 @@ class CheckoutController extends Controller
             'dni' => 'nullable|string',
             'ruc' => 'nullable|string',
             'address' => 'nullable|string',
+            'yape_receipt' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             // card fields optional but may be required by PaymentService
             'card_number' => 'nullable|string',
             'card_holder' => 'nullable|string',
@@ -66,8 +67,9 @@ class CheckoutController extends Controller
         $priceResolver = function($item){ return isset($item['price']) ? $item['price'] : 0; };
         $prepare = Checkout::prepareOrder($priceResolver);
         if (!$prepare['success']) {
-            if ($request->wantsJson()) return response()->json(['success' => false, 'message' => $prepare['message']], 422);
-            return back()->with('error', $prepare['message']);
+            if ($request->wantsJson()) return response()->json(array_merge(['success' => false, 'message' => $prepare['message']], ['details' => $prepare]), 422);
+            // attach debug info to session so admin/dev can inspect
+            return back()->with('error', $prepare['message'])->with('prepare_details', $prepare);
         }
 
         $subtotal = round($prepare['total'], 2);
@@ -75,6 +77,8 @@ class CheckoutController extends Controller
         $totalWithIgv = round($subtotal + $igv, 2);
 
         // crear orden en DB (total incluye IGV)
+        $paymentMethod = $payload['payment_method'] ?? '';
+        $initialStatus = ($paymentMethod === 'yape') ? 'pending' : 'processing';
         $shipping = [
             'name' => $payload['customer_name'] ?? null,
             'dni' => $payload['dni'] ?? null,
@@ -86,7 +90,7 @@ class CheckoutController extends Controller
         $orderId = \Illuminate\Support\Facades\DB::table('orders')->insertGetId([
             'user_id' => Auth::check() ? Auth::id() : null,
             'total' => $totalWithIgv,
-            'status' => 'processing',
+            'status' => $initialStatus,
             'shipping_address' => json_encode($shipping),
             'currency' => 'PEN',
             'created_at' => now(),
@@ -109,51 +113,78 @@ class CheckoutController extends Controller
         // añadir datos al payload para el payment service
         $payload['order_id'] = $orderId;
         $payload['amount'] = $totalWithIgv;
-
-        $charge = Checkout::chargePayment($payload);
-        if (empty($charge['success'])) {
-            // marcar orden como failed
-            \Illuminate\Support\Facades\DB::table('orders')->where('id', $orderId)->update(['status' => 'failed']);
-            if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Pago rechazado'], 402);
-            return back()->with('error', 'Pago rechazado');
-        }
-
-        // Restar stock por cada item (usar InventoryService)
-        $inventory = app(\App\Services\InventoryService::class);
-        $stockErrors = [];
-        foreach ($prepare['items'] as $it) {
-            $prod = $it['product'];
-            $qty = intval($it['quantity']);
-            $ok = $inventory->decreaseStock($prod, $qty);
-            if (! $ok) {
-                $stockErrors[] = $prod->name ?? ($prod->id ?? 'producto');
+        // If Yape selected, expect a receipt upload and mark order as pending. Do not charge or decrement stock yet.
+        if ($paymentMethod === 'yape') {
+            if (! $request->hasFile('yape_receipt')) {
+                // require receipt
+                if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Debe subir el comprobante para Yape.'], 422);
+                return back()->with('error', 'Debe subir el comprobante para Yape.');
             }
+            $file = $request->file('yape_receipt');
+            try {
+                $path = $file->store('receipts', 'public');
+            } catch (\Throwable $e) {
+                $path = null;
+            }
+            // create a payments record marking as pending verification
+            DB::table('payments')->insert([
+                'order_id' => $orderId,
+                'method' => 'yape',
+                'transaction_id' => null,
+                'amount' => $totalWithIgv,
+                'status' => 'pending',
+                'metadata' => json_encode(['receipt_path' => $path]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            // do not decrement stock or create invoice yet
+        } else {
+            // Standard flow: charge payment, decrement stock, mark paid and create invoice
+            $charge = Checkout::chargePayment($payload);
+            if (empty($charge['success'])) {
+                // marcar orden como failed
+                DB::table('orders')->where('id', $orderId)->update(['status' => 'failed']);
+                if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Pago rechazado'], 402);
+                return back()->with('error', 'Pago rechazado');
+            }
+
+            // Restar stock por cada item (usar InventoryService)
+            $inventory = app(\App\Services\InventoryService::class);
+            $stockErrors = [];
+            foreach ($prepare['items'] as $it) {
+                $prod = $it['product'];
+                $qty = intval($it['quantity']);
+                $ok = $inventory->decreaseStock($prod, $qty);
+                if (! $ok) {
+                    $stockErrors[] = $prod->name ?? ($prod->id ?? 'producto');
+                }
+            }
+
+            if (! empty($stockErrors)) {
+                // marcar orden como failed si no se pudo decrementar stock
+                DB::table('orders')->where('id', $orderId)->update(['status' => 'failed']);
+                $names = implode(', ', $stockErrors);
+                $msg = 'No fue posible reservar stock para: ' . $names . '. Pedido marcado como fallido.';
+                if ($request->wantsJson()) return response()->json(['success' => false, 'message' => $msg], 409);
+                return back()->with('error', $msg);
+            }
+
+            // marcar orden como paid (stock actualizado correctamente)
+            DB::table('orders')->where('id', $orderId)->update(['status' => 'paid']);
+
+            // crear invoice: pasar solo datos sanitizados de pago (método y transaction id)
+            $paymentInfo = [
+                'transaction_id' => $charge['transaction_id'] ?? null,
+                'method' => isset($charge['method']) ? $charge['method'] : ($payload['payment_method'] ?? 'unknown'),
+            ];
+
+            $invoice = Checkout::createInvoice([
+                'order_id' => $orderId,
+                'transaction' => $paymentInfo['transaction_id'],
+                'amount' => $totalWithIgv,
+                'payment' => $paymentInfo,
+            ]);
         }
-
-        if (! empty($stockErrors)) {
-            // marcar orden como failed si no se pudo decrementar stock
-            \Illuminate\Support\Facades\DB::table('orders')->where('id', $orderId)->update(['status' => 'failed']);
-            $names = implode(', ', $stockErrors);
-            $msg = 'No fue posible reservar stock para: ' . $names . '. Pedido marcado como fallido.';
-            if ($request->wantsJson()) return response()->json(['success' => false, 'message' => $msg], 409);
-            return back()->with('error', $msg);
-        }
-
-        // marcar orden como paid (stock actualizado correctamente)
-        \Illuminate\Support\Facades\DB::table('orders')->where('id', $orderId)->update(['status' => 'paid']);
-
-        // crear invoice: pasar solo datos sanitizados de pago (método y transaction id)
-        $paymentInfo = [
-            'transaction_id' => $charge['transaction_id'] ?? null,
-            'method' => isset($charge['method']) ? $charge['method'] : ($payload['payment_method'] ?? 'unknown'),
-        ];
-
-        $invoice = Checkout::createInvoice([
-            'order_id' => $orderId,
-            'transaction' => $paymentInfo['transaction_id'],
-            'amount' => $totalWithIgv,
-            'payment' => $paymentInfo,
-        ]);
 
         // limpiar carrito
         $cartService->clear();
