@@ -86,6 +86,10 @@ class ProductSettingsController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::orderBy('name')->get();
+        // If this is an AJAX request (modal), return only the form partial to avoid full layout/nav being returned
+        if (request()->ajax() || request()->wantsJson()) {
+            return view('settings.products.partials.edit-form', compact('product', 'categories'));
+        }
         return view('settings.products.edit', compact('product', 'categories'));
     }
     public function update(Request $request, Product $product)

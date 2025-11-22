@@ -80,11 +80,11 @@
 
                                     <div class="col-md-6" id="dniGroup">
                                         <label class="form-label">DNI</label>
-                                        <input id="dniInput" name="dni" class="form-control" placeholder="DNI (8 dígitos)" inputmode="numeric" />
+                                        <input id="dniInput" name="dni" class="form-control" placeholder="DNI (8 dígitos)" inputmode="numeric" maxlength="8" />
                                     </div>
                                     <div class="col-md-6 d-none" id="rucGroup">
                                         <label class="form-label">RUC</label>
-                                        <input id="rucInput" name="ruc" class="form-control" placeholder="RUC (11 dígitos)" inputmode="numeric" />
+                                        <input id="rucInput" name="ruc" class="form-control" placeholder="RUC (11 dígitos)" inputmode="numeric" maxlength="11" />
                                     </div>
 
                                     <div class="col-12">
@@ -428,6 +428,46 @@
             stepEls.forEach(function(el,i){ el.style.display = (i===idx)?'block':'none'; });
             steps.forEach(function(s,i){ s.classList.toggle('active', i===idx); });
         }
+
+        // Document type UI: toggle DNI / RUC inputs and apply client-side restrictions
+        var docRadios = document.querySelectorAll('input[name="document_type"]');
+        var dniInputEl = document.getElementById('dniInput');
+        var rucInputEl = document.getElementById('rucInput');
+        var dniGroup = document.getElementById('dniGroup');
+        var rucGroup = document.getElementById('rucGroup');
+
+        function onlyDigitsInput(el, maxLen){
+            el.addEventListener('input', function(e){
+                var v = (this.value || '').replace(/\D/g, '');
+                if (maxLen) v = v.slice(0, maxLen);
+                this.value = v;
+            });
+        }
+
+        function updateDocumentUI(){
+            var sel = document.querySelector('input[name="document_type"]:checked');
+            var type = sel ? sel.value : 'boleta';
+            if (type === 'factura'){
+                // show RUC, hide DNI
+                if (rucGroup) rucGroup.classList.remove('d-none');
+                if (dniGroup) dniGroup.classList.add('d-none');
+                if (rucInputEl) { rucInputEl.required = true; rucInputEl.focus(); }
+                if (dniInputEl) { dniInputEl.required = false; dniInputEl.value = ''; }
+            } else {
+                // boleta
+                if (rucGroup) rucGroup.classList.add('d-none');
+                if (dniGroup) dniGroup.classList.remove('d-none');
+                if (dniInputEl) { dniInputEl.required = true; dniInputEl.focus(); }
+                if (rucInputEl) { rucInputEl.required = false; rucInputEl.value = ''; }
+            }
+        }
+
+        // apply digit-only restrictions
+        if (dniInputEl) onlyDigitsInput(dniInputEl, 8);
+        if (rucInputEl) onlyDigitsInput(rucInputEl, 11);
+        docRadios.forEach(function(r){ r.addEventListener('change', updateDocumentUI); });
+        // init
+        updateDocumentUI();
 
         // buttons
         var toStep2Btn = document.getElementById('toStep2Btn');

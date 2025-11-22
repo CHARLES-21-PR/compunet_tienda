@@ -91,6 +91,15 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
     // Fallback GET that generates invoice and redirects to download (useful when JS fails)
     Route::get('/settings/orders/{order}/invoice/generate-download', [\App\Http\Controllers\OrderSettingsController::class, 'generateInvoiceDownload'])->name('settings.orders.generate_invoice_download');
     Route::get('/settings/invoices/{invoice}/download', [\App\Http\Controllers\OrderSettingsController::class, 'downloadInvoice'])->name('settings.invoices.download');
+    
+    // Clientes (CRUD básico)
+    Route::get('/settings/clients', [\App\Http\Controllers\Settings\ClientController::class, 'index'])->name('settings.clients.index');
+    Route::get('/settings/clients/create', [\App\Http\Controllers\Settings\ClientController::class, 'create'])->name('settings.clients.create');
+    Route::post('/settings/clients', [\App\Http\Controllers\Settings\ClientController::class, 'store'])->name('settings.clients.store');
+    Route::get('/settings/clients/{client}/edit', [\App\Http\Controllers\Settings\ClientController::class, 'edit'])->name('settings.clients.edit');
+    Route::put('/settings/clients/{client}', [\App\Http\Controllers\Settings\ClientController::class, 'update'])->name('settings.clients.update');
+    Route::delete('/settings/clients/{client}', [\App\Http\Controllers\Settings\ClientController::class, 'destroy'])->name('settings.clients.destroy');
+    Route::get('/settings/clients/{client}', [\App\Http\Controllers\Settings\ClientController::class, 'show'])->name('settings.clients.show');
     Route::get('/settings/orders/{order}/invoice/xml', [\App\Http\Controllers\OrderSettingsController::class, 'exportInvoiceXml'])->name('settings.orders.export_xml');
 });
 

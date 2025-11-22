@@ -46,11 +46,15 @@ class OrderSettingsController extends Controller
         return view('settings.orders.index', compact('orders','availableStatuses'));
     }
 
-    public function show($id)
+    public function show(\Illuminate\Http\Request $request, $id)
     {
         $order = Order::with('items')->find($id);
         if (! $order) return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
         $invoice = $order->invoice()->orderBy('id','desc')->first();
+        // If the request is AJAX, return only the partial fragment (no layout) for modal display
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('settings.orders.partials.show', compact('order','invoice'));
+        }
         return view('settings.orders.show', compact('order','invoice'));
     }
 

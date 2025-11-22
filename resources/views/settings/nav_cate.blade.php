@@ -445,6 +445,13 @@
         <span class="label">Pedidos</span>
       </a>
     </li>
+    <li class="nav-item mb-1">
+      <a href="{{ route('settings.clients.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('settings.clients.*') ? 'active bg-white text-dark' : 'text-white' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+        <span class="label">Clientes</span>
+      </a>
+    </li>
+    
     </ul>
   </div>
 </div>
@@ -492,6 +499,12 @@
       <a href="{{ route('settings.orders.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('settings.orders.*') ? 'active bg-white text-dark' : 'text-white' }}">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 6h-8l-2-2H3v16h18V6zm-2 10H5V8h4.17L11 9.83V16h8v0z"/></svg>
         <span class="label">Pedidos</span>
+      </a>
+    </li>
+    <li class="nav-item mb-1">
+      <a href="{{ route('settings.clients.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('settings.clients.*') ? 'active bg-white text-dark' : 'text-white' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+        <span class="label">Clientes</span>
       </a>
     </li>
   </ul>
