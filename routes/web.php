@@ -15,6 +15,7 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/settings/nuestras_tiendas', [Controller::class, 'nuestra_tiendas'])->name('nuestras_tiendas');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -64,6 +65,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
 
     //Dashboard de administracion
     Route::get('/settings/dashboard', [Controller::class, 'index_dashboard'])->name('settings.dashboard.index');
+    
 
     //crud categorias
     Route::get('/settings/categories/create', [CategorySettingsController::class, 'create'])->name('settings.categories.create');

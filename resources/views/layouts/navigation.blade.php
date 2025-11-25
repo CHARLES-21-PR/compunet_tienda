@@ -1,12 +1,12 @@
 <header class="header-top">
     <div class="redes">
-        <div class="redes-var">
-            <img class="ico" src="/img/ins.webp" alt="" srcset="">
-            <img class="ico" src="/img/face.webp" alt="" srcset="">
+        <div class="redes-var gap-2">
+            <a href="#"><img class="ico" src="/img/ins.webp" alt="" srcset=""></a>
+            <a href="#"><img class="ico" src="/img/face.webp" alt="" srcset=""></a>
         </div>
         <div class="redes-1">
             <a href="{{ route('dashboard') }}">Inicio</a>
-            <a href="">Nuestras tiendas</a>
+            <a href="{{ route('nuestras_tiendas') }}">Nuestras tiendas</a>
             <a href="">Contáctanos</a>
         </div>
     </div>
