@@ -54,7 +54,7 @@
             </ul>
         </div>
         <div class="enlace ">
-            <a class="menu_link" href=""><img class="icon1" src="/img/l4.webp" alt="">Internet ilimitado</a>
+            <a class="menu_link" href="{{ route('Internet_Ilimitado') }}"> <img class="icon1" src="/img/l4.webp" alt="">Internet ilimitado</a>
         </div>
         <div class="enlace enlace-show">
             <a class="menu_link" href=""><img class="icon1" src="/img/l5.webp" alt="">Atención especializada<img class="arrow" src="/assets/arrow.svg" alt=""></a>

@@ -222,4 +222,9 @@ class Controller extends BaseController
 
         return view('settings.dashboard.index', compact('totalProducts', 'inStock', 'outOfStock', 'categories', 'totalOrders', 'recentOrders', 'ordersCountByDay', 'start', 'end', 'clientName', 'clients', 'clientId'));
     }
+
+    public function Internet_Ilimitado()
+    {
+        return view('Internet_Ilimitado');
+    }
 }
