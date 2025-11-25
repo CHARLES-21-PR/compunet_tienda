@@ -27,7 +27,7 @@ class OrderSettingsController extends Controller
             $query->whereIn('status', $candidates);
         }
 
-        $orders = $query->paginate(20)->withQueryString();
+        $orders = $query->paginate(10)->withQueryString();
         // pass available statuses for the filter UI (from DB if available, fallback to config)
         $availableStatuses = [];
         try {
