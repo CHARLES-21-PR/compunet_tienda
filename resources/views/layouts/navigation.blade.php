@@ -136,9 +136,7 @@
             </nav>
 
             {{-- Notifications (campana) --}}
-            @if(isset($u->role) && $u->role === 'admin')
-            
-            @php
+             @php
                 $pendingYape = collect();
                 $lowStock = collect();
                 $notifCount = 0;
@@ -167,16 +165,14 @@
                 $notifCount = ($pendingYape ? $pendingYape->count() : 0) + ($lowStock ? $lowStock->count() : 0);
             @endphp
 
-            <div>
+            <div class="notif-wrapper" style="position:relative;display:inline-block">
                 <button id="notif-toggle" class="notif-btn" aria-expanded="false" aria-label="Notificaciones">
                     <span class="notif-icon-wrap">
                         <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.92 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h11z"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
-                        @if($notifCount > 0)
-                            <span id="notif-badge" class="notif-badge">{{ $notifCount }}</span>
-                        @endif
+                        <span id="notif-badge" class="notif-badge">{{ $notifCount }}</span>
                     </span>
                 </button>
 
@@ -227,8 +223,7 @@
                     <div class="notif-dropdown-footer"><a href="{{ route('settings.notifications.index') }}">Ver todas</a></div>
                 </div>
             </div>
-
-            @endif
+            
             {{-- Cart --}}
             @php
                 $cartCount = 0;
