@@ -74,7 +74,7 @@
 
     {{-- Right side: user dropdown + cart grouped --}}
     @if (Route::has('login'))
-        <div class="top-right-actions" style="display:flex;align-items:center;padding:0 16px;gap:12px">
+        <div class="top-right-actions" style="display:flex;align-items:center;padding:0 20px;gap:16px">
             <nav class="flex items-center justify-end gap-4">
                 @auth
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -136,6 +136,7 @@
             </nav>
 
             {{-- Notifications (campana) --}}
+            @role('admin')
              @php
                 $pendingYape = collect();
                 $lowStock = collect();
@@ -223,6 +224,7 @@
                     <div class="notif-dropdown-footer"><a href="{{ route('settings.notifications.index') }}">Ver todas</a></div>
                 </div>
             </div>
+            @endrole
             
             {{-- Cart --}}
             @php
