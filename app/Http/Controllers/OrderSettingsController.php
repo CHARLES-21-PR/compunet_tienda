@@ -11,7 +11,7 @@ class OrderSettingsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with('invoice')->orderBy('created_at', 'desc');
+        $query = Order::with(['invoice','payments','user'])->orderBy('created_at', 'desc');
 
         // filter by status if provided. Accept Spanish and English keys (map aliases)
         $status = $request->query('status');
@@ -25,6 +25,23 @@ class OrderSettingsController extends Controller
             if (isset($aliases[$s])) $candidates[] = $aliases[$s];
             // query DB for any of the candidate status values
             $query->whereIn('status', $candidates);
+        }
+
+        // filter by payment method (supports orders.payment_method column or payments relation)
+        $paymentMethod = $request->query('payment_method');
+        if ($paymentMethod) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'payment_method')) {
+                $query->where(function($q) use ($paymentMethod) {
+                    $q->where('payment_method', $paymentMethod)
+                      ->orWhereHas('payments', function($qp) use ($paymentMethod) {
+                          $qp->where('method', $paymentMethod);
+                      });
+                });
+            } else {
+                $query->whereHas('payments', function($qp) use ($paymentMethod) {
+                    $qp->where('method', $paymentMethod);
+                });
+            }
         }
 
         $orders = $query->paginate(10)->withQueryString();
@@ -43,12 +60,34 @@ class OrderSettingsController extends Controller
             $defaults = ['pagado' => 'Pagado', 'entregado' => 'Entregado', 'cancelado' => 'Cancelado', 'fallido' => 'Fallido', 'pendiente' => 'Pendiente'];
             foreach ($defaults as $k => $v) $availableStatuses[$k] = $v;
         }
-        return view('settings.orders.index', compact('orders','availableStatuses'));
+        // gather available payment methods for the filter UI
+        $availablePaymentMethods = [];
+        try {
+            // Prefer methods from payments table
+            if (\Illuminate\Support\Facades\Schema::hasTable('payments')) {
+                $availablePaymentMethods = \App\Models\Payment::select('method')->distinct()->whereNotNull('method')->orderBy('method')->pluck('method')->toArray();
+            }
+        } catch (\Throwable $e) {
+            $availablePaymentMethods = [];
+        }
+
+        // fallback: if orders table stores method on the model
+        if (empty($availablePaymentMethods)) {
+            try {
+                if (\Illuminate\Support\Facades\Schema::hasTable('orders') && \Illuminate\Support\Facades\Schema::hasColumn('orders','payment_method')) {
+                    $availablePaymentMethods = \App\Models\Order::select('payment_method')->distinct()->whereNotNull('payment_method')->orderBy('payment_method')->pluck('payment_method')->toArray();
+                }
+            } catch (\Throwable $e) {
+                $availablePaymentMethods = [];
+            }
+        }
+
+        return view('settings.orders.index', compact('orders','availableStatuses','availablePaymentMethods'));
     }
 
     public function show(\Illuminate\Http\Request $request, $id)
     {
-        $order = Order::with('items')->find($id);
+        $order = Order::with(['items','payments','user'])->find($id);
         if (! $order) return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
         $invoice = $order->invoice()->orderBy('id','desc')->first();
         // If the request is AJAX, return only the partial fragment (no layout) for modal display

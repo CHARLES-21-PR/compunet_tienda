@@ -48,6 +48,7 @@
                                             <th>Nombre</th>
                                             <th>Categoría</th>
                                             <th>Precio</th>
+                                            <th>Descripción</th>
                                             <th>Stock</th>
                                             <th>Acciones</th>
                                         </tr>
@@ -58,11 +59,12 @@
                                                 <td>{{ $prod->id }}</td>
                                                 <td>{{ $prod->name }}</td>
                                                 <td>{{ $prod->category->name ?? '-' }}</td>
-                                                <td>${{ number_format($prod->price, 2) }}</td>
+                                                <td>s/.{{ number_format($prod->price, 2) }}</td>
+                                                <td class="product-desc" title="{{ $prod->description }}">{{ \Illuminate\Support\Str::limit(strip_tags($prod->description), 100) }}</td>
                                                 <td>{{ $prod->stock }}</td>
                                                 <td>
                                                     <a href="{{ route('settings.products.edit', $prod) }}" class="btn btn-sm btn-secondary">Editar</a>
-                                                    <form action="{{ route('settings.products.destroy', $prod) }}" method="POST" style="display:inline-block">
+                                                    <form action="{{ route('settings.products.destroy', $prod) }}" method="POST" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar producto #{{ $prod->id }}" data-confirm-message="¿Eliminar el producto '{{ addslashes($prod->name) }}' (ID #{{ $prod->id }})? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button class="btn btn-sm btn-danger">Eliminar</button>
@@ -81,6 +83,24 @@
         </div>
     @endsection
 </x-app-layout>
+
+<style>
+.product-desc{
+    max-width:320px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+/* Si prefieres limitar a múltiples líneas, usa este bloque en su lugar:
+.product-desc{
+    display:-webkit-box;
+    -webkit-line-clamp:3; /* número de líneas */
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+*/
+
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function(){

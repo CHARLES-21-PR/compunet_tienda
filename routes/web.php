@@ -105,6 +105,9 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
     Route::delete('/settings/clients/{client}', [\App\Http\Controllers\Settings\ClientController::class, 'destroy'])->name('settings.clients.destroy');
     Route::get('/settings/clients/{client}', [\App\Http\Controllers\Settings\ClientController::class, 'show'])->name('settings.clients.show');
     Route::get('/settings/orders/{order}/invoice/xml', [\App\Http\Controllers\OrderSettingsController::class, 'exportInvoiceXml'])->name('settings.orders.export_xml');
+    
+    // Notifications for admin (pending Yape orders, low stock)
+    Route::get('/settings/notifications', [\App\Http\Controllers\Settings\NotificationController::class, 'index'])->name('settings.notifications.index');
 });
 
 require __DIR__.'/auth.php';

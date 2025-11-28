@@ -50,7 +50,7 @@
 											<td>{{ $cat->name }}</td>
 											<td>
 												<a href="{{ route('settings.categories.edit', $cat) }}" class="btn btn-sm btn-secondary">Editar</a>
-												<form action="{{ route('settings.categories.destroy', $cat) }}" method="POST" style="display:inline-block">
+												<form action="{{ route('settings.categories.destroy', $cat) }}" method="POST" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar categoría #{{ $cat->id }}" data-confirm-message="¿Eliminar la categoría '{{ addslashes($cat->name) }}' (ID #{{ $cat->id }})? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
 													@csrf
 													@method('DELETE')
 													<button class="btn btn-sm btn-danger">Eliminar</button>

@@ -19,7 +19,15 @@
 									<option value="{{ $k }}" {{ request()->query('status') === $k ? 'selected' : '' }}>{{ $label }}</option>
 								@endforeach
 							</select>
-							@if(request()->query('status'))
+
+							<select id="paymentMethodSelect" name="payment_method" class="form-select form-select-sm" style="height:40px; min-width: 160px;" onchange="document.getElementById('ordersFilterForm').submit();">
+								<option value="">Todos los métodos</option>
+								@foreach($availablePaymentMethods ?? [] as $m)
+									<option value="{{ $m }}" {{ request()->query('payment_method') === $m ? 'selected' : '' }}>{{ ucfirst($m) }}</option>
+								@endforeach
+							</select>
+
+							@if(request()->query('status') || request()->query('payment_method'))
 								<a href="{{ route('settings.orders.index') }}" class="btn btn-sm btn-secondary">Limpiar</a>
 							@endif
 						</form>
@@ -42,6 +50,7 @@
 								<th>ID</th>
 								<th>Cliente</th>
 								<th>Total</th>
+								<th>Metodo Pago</th>
 								<th>Estado</th>
 								<th>Fecha</th>
 								<th>Acciones</th>
@@ -64,6 +73,12 @@
 									@endif
 								</td>
 								<td>{{ number_format($o->total,2) }}</td>
+								<td>
+									@php
+										$method = $o->payment_method ?? optional($o->payments->first())->method ?? null;
+									@endphp
+									{{ $method ? ucfirst($method) : 'N/A' }}
+								</td>
 								@php
 									$statusMap = [
 										'pagado' => ['label' => 'Pagado', 'class' => 'success'],
@@ -120,7 +135,7 @@
 									@else
 										<a href="{{ route('settings.orders.generate_invoice_download', $o->id) }}" class="btn btn-sm btn-warning ms-1 generate-download-btn" data-order-id="{{ $o->id }}">Generar y descargar PDF</a>
 									@endif
-									<form action="{{ route('settings.orders.destroy', $o->id) }}" method="POST" style="display:inline-block" onsubmit="return confirm('¿Eliminar pedido #{{ $o->id }}? Esta acción no se puede deshacer.');">
+									<form action="{{ route('settings.orders.destroy', $o->id) }}" method="POST" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar pedido #{{ $o->id }}" data-confirm-message="¿Eliminar pedido #{{ $o->id }}? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
 										@csrf
 										@method('DELETE')
 										<button class="btn btn-sm btn-danger ms-1">Eliminar</button>
@@ -137,6 +152,9 @@
 		</div>
 	</div>
 </div>
+
+<!-- Modal de confirmación moderno (reemplaza confirm()) -->
+<!-- The confirmation modal is provided globally in the layout (resources/views/layouts/app.blade.php) -->
 
 <script>
 	(function(){

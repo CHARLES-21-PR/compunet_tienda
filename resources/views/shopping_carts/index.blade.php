@@ -43,7 +43,7 @@
             <div class="row g-3">
                 <div class="col-12 col-lg-8">
                     <div class="card shadow-sm">
-                        <div class="card-body">
+                        <div class="card-body p-32">
                             @guest
                                 <div class="alert alert-warning d-flex align-items-center" role="alert">
                                     <div class="me-2">
@@ -87,11 +87,11 @@
                                                     <div class="d-flex justify-content-between align-items-start">
                                                         <div>
                                                             <h5 class="mb-1">{{ $it['name'] }}</h5>
-                                                            <div class="text-muted">Precio unitario: <strong>${{ number_format($it['price'], 2) }}</strong></div>
+                                                            <div class="text-muted">Precio unitario: <strong>S/.{{ number_format($it['price'], 2) }}</strong></div>
                                                         </div>
                                                         <div class="text-end">
                                                             <div class="mb-2 text-muted">Subtotal</div>
-                                                            <div class="fw-bold">${{ number_format($it['subtotal'], 2) }}</div>
+                                                            <div class="fw-bold">S/.{{ number_format($it['subtotal'], 2) }}</div>
                                                         </div>
                                                     </div>
 
@@ -116,7 +116,7 @@
 
                 <div class="col-12 col-lg-4">
                     <div class="card shadow-sm sticky-top z-1" style="top:20px">
-                        <div class="card-body">
+                        <div class="card-body p-32">
                             <h5 class="mb-3">Resumen de la orden</h5>
                             @php
                                 // IGV (18%) applied on subtotal
@@ -125,11 +125,11 @@
                             @endphp
                             <div class="d-flex justify-content-between mb-2">
                                 <div class="text-muted">Subtotal</div>
-                                <div class="fw-bold">$<span id="subtotalAmount">{{ number_format($total, 2) }}</span></div>
+                                <div class="fw-bold">S/.<span id="subtotalAmount">{{ number_format($total, 2) }}</span></div>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <div class="text-muted">IGV (18%)</div>
-                                <div class="fw-bold">$<span id="igvAmount">{{ number_format($igv, 2) }}</span></div>
+                                <div class="fw-bold">S/.<span id="igvAmount">{{ number_format($igv, 2) }}</span></div>
                             </div>
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="text-muted">Envío</div>
@@ -138,7 +138,7 @@
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="fw-semibold">Total</div>
-                                <div class="h5">$<span id="grandTotalAmount">{{ number_format($grandTotal, 2) }}</span></div>
+                                <div class="h5">S/.<span id="grandTotalAmount">{{ number_format($grandTotal, 2) }}</span></div>
                             </div>
                             <button class="btn btn-primary w-100 mb-2" id="checkoutBtn" {{ $total == 0 ? 'disabled' : '' }}>Proceder al pago</button>
                             <a href="{{ route('dashboard') ?? url('/') }}" class="btn btn-outline-secondary w-100">Seguir comprando</a>

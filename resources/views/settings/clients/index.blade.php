@@ -66,7 +66,7 @@
                                             <td class="text-end">
                                                 <a href="{{ route('settings.clients.show', $user) }}" class="btn btn-sm btn-outline-light">Ver</a>
                                                 <a href="{{ route('settings.clients.edit', $user) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
-                                                <form action="{{ route('settings.clients.destroy', $user) }}" method="post" style="display:inline-block" onsubmit="return confirm('Eliminar cliente?');">
+                                                <form action="{{ route('settings.clients.destroy', $user) }}" method="post" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar cliente #{{ $user->id }}" data-confirm-message="¿Eliminar al cliente '{{ addslashes($user->name) }}' (ID #{{ $user->id }})? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
                                                     @csrf
                                                     @method('delete')
                                                     <button class="btn btn-sm btn-danger">Eliminar</button>

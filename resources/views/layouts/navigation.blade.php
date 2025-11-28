@@ -135,6 +135,100 @@
                 @endauth
             </nav>
 
+            {{-- Notifications (campana) --}}
+            @if(isset($u->role) && $u->role === 'admin')
+            
+            @php
+                $pendingYape = collect();
+                $lowStock = collect();
+                $notifCount = 0;
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('orders')) {
+                        if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'payment_method')) {
+                            $pendingYape = \App\Models\Order::where('payment_method', 'yape')
+                                ->whereIn('status', ['pendiente','pending'])
+                                ->latest()->take(6)->get();
+                        } elseif (\Illuminate\Support\Facades\Schema::hasTable('payments')) {
+                            $pendingYape = \App\Models\Order::whereHas('payments', function($q){
+                                $q->where('method','yape')->whereIn('status',['pendiente','pending']);
+                            })->latest()->take(6)->get();
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    $pendingYape = collect();
+                }
+                try {
+                    if (\Illuminate\Support\Facades\Schema::hasTable('products') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock_min')) {
+                        $lowStock = \App\Models\Product::whereColumn('stock','<','stock_min')->latest()->take(6)->get();
+                    }
+                } catch (\Throwable $e) {
+                    $lowStock = collect();
+                }
+                $notifCount = ($pendingYape ? $pendingYape->count() : 0) + ($lowStock ? $lowStock->count() : 0);
+            @endphp
+
+            <div>
+                <button id="notif-toggle" class="notif-btn" aria-expanded="false" aria-label="Notificaciones">
+                    <span class="notif-icon-wrap">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.92 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h11z"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        @if($notifCount > 0)
+                            <span id="notif-badge" class="notif-badge">{{ $notifCount }}</span>
+                        @endif
+                    </span>
+                </button>
+
+                <div id="notif-dropdown" class="notif-dropdown" aria-hidden="true">
+                    <div class="notif-dropdown-header">
+                        <div class="title">Notificaciones</div>
+                        <div class="count">{{ $notifCount }}</div>
+                    </div>
+                    <div class="notif-dropdown-body">
+                        @if($pendingYape && $pendingYape->count())
+                            <div class="notif-section">
+                                <div class="notif-text">
+                                    @foreach($pendingYape as $o)
+                                        <div class="notif-item">
+                                            <div class="avatar">Y</div>
+                                            <div class="content">
+                                                <div class="title">Pedido #{{ $o->id }}</div>
+                                                <div class="meta">{{ optional($o->user)->name ?? optional($o->client)->name ?? 'Cliente' }} • {{ $o->created_at ? $o->created_at->diffForHumans() : '' }}</div>
+                                            </div>
+                                            <div class="actions"><a href="{{ route('settings.orders.show', ['order' => $o->id]) }}">Ver</a></div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($lowStock && $lowStock->count())
+                            <div class="notif-section">
+                                <div class="notif-text">
+                                    @foreach($lowStock as $p)
+                                        <div class="notif-item">
+                                            <div class="avatar">{{ strtoupper(substr($p->name ?? 'P',0,1)) }}</div>
+                                            <div class="content">
+                                                <div class="title">{{ $p->name ?? 'Producto' }}</div>
+                                                <div class="meta">Stock: {{ $p->stock ?? 'N/A' }}</div>
+                                            </div>
+                                            <div class="actions"><a href="{{ route('settings.products.edit', ['product' => $p->id]) }}">Editar</a></div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        @if((!$pendingYape || $pendingYape->isEmpty()) && (!$lowStock || $lowStock->isEmpty()))
+                            <div class="notif-empty">No hay notificaciones nuevas</div>
+                        @endif
+                    </div>
+                    <div class="notif-dropdown-footer"><a href="{{ route('settings.notifications.index') }}">Ver todas</a></div>
+                </div>
+            </div>
+
+            @endif
             {{-- Cart --}}
             @php
                 $cartCount = 0;
@@ -186,6 +280,30 @@
             setCartBadge(c);
         });
         window.updateCartBadge = setCartBadge;
+    })();
+</script>
+
+<script>
+    (function(){
+        var toggle = document.getElementById('notif-toggle');
+        var dropdown = document.getElementById('notif-dropdown');
+        if(!toggle || !dropdown) return;
+
+        toggle.addEventListener('click', function(e){
+            e.stopPropagation();
+            var open = dropdown.classList.toggle('open');
+            dropdown.setAttribute('aria-hidden', open ? 'false' : 'true');
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+
+        // close on outside click
+        document.addEventListener('click', function(){
+            dropdown.classList.remove('open');
+            dropdown.setAttribute('aria-hidden','true');
+            toggle.setAttribute('aria-expanded','false');
+        });
+
+        dropdown.addEventListener('click', function(e){ e.stopPropagation(); });
     })();
 </script>
 
