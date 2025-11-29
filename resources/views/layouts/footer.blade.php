@@ -56,64 +56,78 @@
 </footer>
 
 {{-- ======================================================= --}}
-{{-- BOTÓN FLOTANTE DE WHATSAPP CON MENÚ DESPLEGABLE --}}
+{{-- BOTÓN FLOTANTE CON ALPINE.JS (Animación Suave)      --}}
 {{-- ======================================================= --}}
 
-{{-- 1. El Menú que se despliega (oculto por defecto) --}}
-<div class="card card-fijo collapse" id="collapseExample">
-    <div class="card-body card-body-flotante">
-        {{-- Cabecera del menú --}}
-        <div class="title-card-flotante">
-            <div class="row">
-                <div class="col-md-auto colphone">
-                    {{-- Asegúrate de tener esta imagen --}}
-                    <img class="vendeonline" src="/img/vendedoronline.webp" alt="Soporte">
-                </div>
-                <div class="col colphone">
-                    <span class="span-flotante flo-ne">Atención al Cliente</span><br>
-                    <span class="span-flotante flo-me">COMPUNET</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Opciones del menú --}}
-        <div class="alert alert-flotante alert-light" role="alert">
-            <div class="row">
-                <div class="col coltexflo colphone">Aqui!! Sucursal Imperial 👋</div>
-                <div class="col-md-auto colphone">
-                    <a target="_blank" href="https://api.whatsapp.com/send?phone=51926052866&text=Hola,%20Quisiera%20consultar%20sobre%20el%20producto%20en%20venta">
-                        <img class="enviarflotante" src="/img/enviar.webp" alt="Enviar">
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="alert alert-flotante alert-light" role="alert">
-            <div class="row">
-                <div class="col coltexflo colphone">Aqui!! Sucursal San Vicente 👋</div>
-                <div class="col-md-auto colphone">
-                    <a target="_blank" href="https://api.whatsapp.com/send?phone=51928462723&text=Hola,%20Quisiera%20consultar%20sobre%20el%20producto%20en%20venta">
-                        <img class="enviarflotante" src="/img/enviar.webp" alt="Enviar">
-                    </a>
+<div x-data="{ open: false }" style="position: relative; z-index: 1000000;">
+    
+    {{-- 1. MENÚ DESPLEGABLE --}}
+    <div x-show="open"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+         class="card card-fijo"
+         style="display: none; bottom: 80px;"> {{-- Bottom evita que tape al botón --}}
+         
+        <div class="card-body card-body-flotante">
+            {{-- Cabecera del menú --}}
+            <div class="title-card-flotante">
+                <div class="row">
+                    <div class="col-md-auto colphone">
+                        <img class="vendeonline" src="/img/vendedoronline.webp" alt="Soporte">
+                    </div>
+                    <div class="col colphone">
+                        <span class="span-flotante flo-ne">Atención al Cliente</span><br>
+                        <span class="span-flotante flo-me">COMPUNET</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="alert alert-flotante alert-light" role="alert">
-            <div class="row">
-                <div class="col coltexflo colphone">Aqui!! Sucursal Mala 👋</div>
-                <div class="col-md-auto colphone">
-                    <a target="_blank" href="https://api.whatsapp.com/send?phone=51900186869&text=Hola,%20Quisiera%20consultar%20sobre%20el%20producto%20en%20venta">
-                        <img class="enviarflotante" src="/img/enviar.webp" alt="Enviar">
-                    </a>
+            {{-- Opciones del menú --}}
+            <div class="alert alert-flotante alert-light" role="alert">
+                <div class="row">
+                    <div class="col coltexflo colphone">Aqui!! Sucursal Imperial 👋</div>
+                    <div class="col-md-auto colphone">
+                        <a target="_blank" href="https://api.whatsapp.com/send?phone=51926052866&text=Hola,%20Quisiera%20consultar%20sobre%20el%20producto%20en%20venta">
+                            <img class="enviarflotante" src="/img/enviar.webp" alt="Enviar">
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-flotante alert-light" role="alert">
+                <div class="row">
+                    <div class="col coltexflo colphone">Aqui!! Sucursal San Vicente 👋</div>
+                    <div class="col-md-auto colphone">
+                        <a target="_blank" href="https://api.whatsapp.com/send?phone=51928462723&text=Hola,%20Quisiera%20consultar%20sobre%20el%20producto%20en%20venta">
+                            <img class="enviarflotante" src="/img/enviar.webp" alt="Enviar">
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-flotante alert-light" role="alert">
+                <div class="row">
+                    <div class="col coltexflo colphone">Aqui!! Sucursal Mala 👋</div>
+                    <div class="col-md-auto colphone">
+                        <a target="_blank" href="https://api.whatsapp.com/send?phone=51900186869&text=Hola,%20Quisiera%20consultar%20sobre%20el%20producto%20en%20venta">
+                            <img class="enviarflotante" src="/img/enviar.webp" alt="Enviar">
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-{{-- 2. El Botón Flotante (Icono de WhatsApp) --}}
-{{-- Este botón activa el "collapse" del menú de arriba --}}
-<div class="ico-whatsapp" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
-    <img class="ico-img-wsp" src="/img/wsp.png" width="50px" height="50px" alt="WhatsApp">
+    {{-- 2. BOTÓN FLOTANTE --}}
+    <div @click="open = !open" 
+         class="ico-whatsapp" 
+         role="button" 
+         style="cursor: pointer;">
+        <img class="ico-img-wsp" src="/img/wsp.png" width="50px" height="50px" alt="WhatsApp">
+    </div>
+
 </div>
