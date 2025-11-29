@@ -27,7 +27,7 @@
             #auth-card .auth-row { display: flex !important; flex-direction: row !important; }
             #auth-card .auth-left, #auth-card .auth-right { width: 50% !important; }
             #auth-card .auth-left { display:flex !important; align-items:center !important; justify-content:center !important; padding:1.5rem !important; }
-            #auth-card .auth-right { display:flex !important; align-items:center !important; justify-content:center !important; padding:1.5rem !important; }
+            #auth-card .auth-right { display:flex !important; align-items:center !important; justify-content:center !important;padding: 0 !important }
 
             /* Page background (light, subtle) */
             body { background: linear-gradient(180deg,#f8fafc 0%, #f3f4f6 100%) !important; }
@@ -93,9 +93,9 @@
             <div id="auth-card" class="w-full max-w-2xl mx-auto rounded-2xl shadow-xl overflow-hidden border border-gray-100/30 bg-white/40 backdrop-blur-sm">
                 <div class="flex flex-row auth-row">
                     <!-- Left: Accent panel -->
-                    <div class="w-1/2 auth-left bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-500 flex items-center justify-center text-center text-white">
-                        <div class="space-y-3 max-w-xs">
-                            <a href="/" class="inline-block">
+                    <div class="w-1/2 auth-left bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-500 p-6 flex items-center justify-center text-center text-white">
+                        <div class="space-y-3 max-w-xs ">
+                            <a href="/" class="inline-block justify-center items-center flex gap-2 mb-4">
                                 <x-application-logo class="w-20 h-20" />
                             </a>
                             <h1 class="text-xl font-semibold">{{ config('app.name', 'Laravel') }}</h1>
@@ -104,7 +104,7 @@
                     </div>
 
                     <!-- Right: Auth card (login / register) -->
-                    <div class=" auth-right flex items-center justify-center">
+                    <div class="w-1/2 auth-right p-6 flex items-center justify-center">
                         <div class="w-full max-w-md bg-white rounded-lg shadow-md p-6">
                             {{ $slot }}
                         </div>
