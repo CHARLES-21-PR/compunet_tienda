@@ -6,7 +6,7 @@
                 <h1 class="mb-3">Notificaciones</h1>
                 <p class="text-muted mb-4">Resumen de elementos que requieren atención.</p>
 
-                <div class="row g-3" style="margin-top:6px;">
+                <div class="row" style="margin-top:6px;">
                     <div class="col-md-6">
                         <div class="card shadow-sm h-100 notif-card">
                             <div class="card-body p-32">
@@ -17,7 +17,7 @@
                                         <div class="h3">{{ $pendingYape->count() }}</div>
                                     </div>
                                     <div class="align-self-start">
-                                        <a href="{{ route('settings.orders.index') }}" class="btn btn-primary">Ver pedidos</a>
+                                        <a href="{{ route('admin.orders.index') }}" class="btn btn-primary">Ver pedidos</a>
                                     </div>
                                 </div>
 
@@ -30,7 +30,7 @@
                                                     <div class="fw-bold">Pedido #{{ $order->id ?? '-' }}</div>
                                                     <div class="text-muted small">{{ $order->user->name ?? ($order->customer_name ?? '-') }} • {{ $order->created_at?->diffForHumans() ?? '' }}</div>
                                                 </div>
-                                                <a href="{{ route('settings.orders.show', $order) }}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                                <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-sm btn-outline-primary">Ver</a>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -39,7 +39,7 @@
                         </div>
                     </div>
 
-                    <div class="col-md-6">
+                    {{-- <div class="col-md-6">
                         <div class="card shadow-sm h-100 notif-card">
                             <div class="card-body p-32">
                                 <h5 class="card-title mb-1">Productos con bajo stock</h5>
@@ -61,7 +61,7 @@
                                 @endif
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>

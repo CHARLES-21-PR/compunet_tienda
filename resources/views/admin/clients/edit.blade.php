@@ -1,0 +1,42 @@
+<x-app-layout>
+    @section('content')
+        <div class="container-fluid">
+            <div class="row g-0">
+                <div class="col-12 col-md-3 px-0">
+                    @include('admin.partials.nav_cate')
+                </div>
+                <div id="settings-main" class="col-12 col-md-9 ps-md-1">
+                    <div class="bg-dark p-3" style="border-radius:14px;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <h1 class="text-white mb-0">Editar cliente</h1>
+                                <div class="small text-white-50">Actualizar datos del cliente</div>
+                            </div>
+                            <div>
+                                <a href="{{ route('admin.clients.index') }}" class="btn btn-sm btn-outline-light">Volver</a>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('admin.clients.update', $user) }}" method="post" class="p-2" style="background: rgba(255,255,255,0.02); border-radius:8px;">
+                            @csrf
+                            @method('put')
+                            <div class="mb-2">
+                                <label class="form-label small">Nombre</label>
+                                <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name', $user->name) }}" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Email</label>
+                                <input type="email" name="email" class="form-control form-control-sm" value="{{ old('email', $user->email) }}" required>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-primary">Actualizar</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endsection
+</x-app-layout>

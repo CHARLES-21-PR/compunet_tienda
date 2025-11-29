@@ -11,7 +11,7 @@
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
                                 <h1 class="text-white mb-0">Productos</h1>
-                                
+                                <div class="text-muted small">Administra tus productos — búsqueda rápida y acciones</div>
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                     <form id="productsFilterForm" method="GET" action="{{ route('settings.products.index') }}" class="d-flex align-items-center gap-2">
@@ -32,98 +32,41 @@
                             </div>
                         </div>
 
-                        @if($products->isEmpty())
-                            <p class="text-white">No hay productos.</p>
-                        @else
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="settings-pagination-top w-100 d-flex justify-content-end">
-                                    {!! str_replace('<nav', '<nav style="background: rgba(33, 37, 41, 0.75); padding: .15rem .5rem; border-radius:10px; color: #fff; --bs-pagination-color: #fff; --bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.06); --bs-pagination-hover-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.04); --bs-pagination-active-color: #0f172a; --bs-pagination-active-bg: #eef2ff;"', $products->links('pagination::bootstrap-5')) !!}
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-dark rounded-3">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nombre</th>
-                                            <th>Categoría</th>
-                                            <th>Precio</th>
-                                            <th>Descripción</th>
-                                            <th>Stock</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($products as $prod)
-                                            <tr>
-                                                <td>{{ $prod->id }}</td>
-                                                <td>{{ $prod->name }}</td>
-                                                <td>{{ $prod->category->name ?? '-' }}</td>
-                                                <td>s/.{{ number_format($prod->price, 2) }}</td>
-                                                <td class="product-desc" title="{{ $prod->description }}">{{ \Illuminate\Support\Str::limit(strip_tags($prod->description), 100) }}</td>
-                                                <td>{{ $prod->stock }}</td>
-                                                <td>
-                                                    <a href="{{ route('settings.products.edit', $prod) }}" class="btn btn-sm btn-secondary">Editar</a>
-                                                    <form action="{{ route('settings.products.destroy', $prod) }}" method="POST" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar producto #{{ $prod->id }}" data-confirm-message="¿Eliminar el producto '{{ addslashes($prod->name) }}' (ID #{{ $prod->id }})? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button class="btn btn-sm btn-danger">Eliminar</button>
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                            {{-- pagination (moved to top) --}}
-                        @endif
-                    </div>
-                </div>
-            </div>
+            @if($products->isEmpty())
+                <p>No hay productos.</p>
+            @else
+                <table class="table table-dark rounded-3">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($products as $prod)
+                            <tr>
+                                <td>{{ $prod->id }}</td>
+                                <td>{{ $prod->name }}</td>
+                                <td>{{ $prod->category->name ?? '-' }}</td>
+                                <td>${{ number_format($prod->price, 2) }}</td>
+                                <td>{{ $prod->stock }}</td>
+                                <td>
+                                    <a href="{{ route('settings.products.edit', $prod) }}" class="btn btn-sm btn-secondary">Editar</a>
+                                    <form action="{{ route('settings.products.destroy', $prod) }}" method="POST" style="display:inline-block">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
         </div>
     @endsection
 </x-app-layout>
-
-<style>
-.product-desc{
-    max-width:320px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-}
-/* Si prefieres limitar a múltiples líneas, usa este bloque en su lugar:
-.product-desc{
-    display:-webkit-box;
-    -webkit-line-clamp:3; /* número de líneas */
-    -webkit-box-orient:vertical;
-    overflow:hidden;
-}
-*/
-
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-    const form = document.getElementById('productsFilterForm');
-    if(!form) return;
-    const input = document.getElementById('productsSearchInput');
-    const select = document.getElementById('productsCategorySelect');
-
-    // submit when category changes
-    if(select){
-        select.addEventListener('change', function(){
-            form.submit();
-        });
-    }
-
-    // submit on Enter in search input
-    if(input){
-        input.addEventListener('keydown', function(e){
-            if(e.key === 'Enter'){
-                e.preventDefault();
-                form.submit();
-            }
-        });
-    }
-});
-</script>

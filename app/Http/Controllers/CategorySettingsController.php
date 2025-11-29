@@ -11,13 +11,13 @@ class CategorySettingsController extends Controller
     {
         // Paginate categories to avoid loading all at once
         $categories = Category::orderBy('id')->paginate(10);
-        return view('settings.categories.index', compact('categories'));
+        return view('admin.categories.index', compact('categories'));
     }
     
    
     public function create()
     {
-        return view('settings.categories.create');
+        return view('admin.categories.create');
     }
     public function store(Request $request)
     {
@@ -29,12 +29,12 @@ class CategorySettingsController extends Controller
             'name' => $request->input('name'),
         ]);
 
-        return redirect()->route('settings.categories.index')->with('success', 'Categoría creada exitosamente.');
+        return redirect()->route('admin.categories.index')->with('success', 'Categoría creada exitosamente.');
     }
 
     public function edit(Category $category)
     {
-        return view('settings.categories.edit', compact('category'));
+        return view('admin.categories.edit', compact('category'));
     }
     public function update(Request $request, Category $category)
     {
@@ -46,11 +46,11 @@ class CategorySettingsController extends Controller
             'name' => $request->input('name'),
         ]);
 
-        return redirect()->route('settings.categories.index')->with('success', 'Categoría actualizada exitosamente.');
+        return redirect()->route('admin.categories.index')->with('success', 'Categoría actualizada exitosamente.');
     }
     public function destroy(Category $category)
     {
         $category->delete();
-        return redirect()->route('settings.categories.index')->with('success', 'Categoría eliminada exitosamente.');
+        return redirect()->route('admin.categories.index')->with('success', 'Categoría eliminada exitosamente.');
     }
 }

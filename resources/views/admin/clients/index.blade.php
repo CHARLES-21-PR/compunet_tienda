@@ -3,7 +3,7 @@
         <div class="container-fluid">
             <div class="row g-0">
                 <div class="col-12 col-md-3 px-0">
-                    @include('settings.nav_cate')
+                    @include('admin.partials.nav_cate')
                 </div>
                 <div id="settings-main" class="col-12 col-md-9 ps-md-1">
                     <div class="bg-dark p-3" style="border-radius:14px;">
@@ -13,7 +13,7 @@
                                 <div class="small text-white-50">Gestión básica de clientes</div>
                             </div>
                             <div>
-                                <a href="{{ route('settings.clients.create') }}" class="btn btn-sm btn-primary">Crear cliente</a>
+                                <a href="{{ route('admin.clients.create') }}" class="btn btn-sm btn-primary">Crear cliente</a>
                             </div>
                         </div>
 
@@ -64,9 +64,9 @@
                                             <td>{{ $user->email }}</td>
                                             <td>{{ $user->created_at->format('Y-m-d') }}</td>
                                             <td class="text-end">
-                                                <a href="{{ route('settings.clients.show', $user) }}" class="btn btn-sm btn-outline-light">Ver</a>
-                                                <a href="{{ route('settings.clients.edit', $user) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
-                                                <form action="{{ route('settings.clients.destroy', $user) }}" method="post" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar cliente #{{ $user->id }}" data-confirm-message="¿Eliminar al cliente '{{ addslashes($user->name) }}' (ID #{{ $user->id }})? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
+                                                <a href="{{ route('admin.clients.show', $user) }}" class="btn btn-sm btn-outline-light">Ver</a>
+                                                <a href="{{ route('admin.clients.edit', $user) }}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                                                <form action="{{ route('admin.clients.destroy', $user) }}" method="post" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar cliente #{{ $user->id }}" data-confirm-message="¿Eliminar al cliente '{{ addslashes($user->name) }}' (ID #{{ $user->id }})? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
                                                     @csrf
                                                     @method('delete')
                                                     <button class="btn btn-sm btn-danger">Eliminar</button>

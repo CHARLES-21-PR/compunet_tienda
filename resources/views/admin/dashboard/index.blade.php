@@ -3,7 +3,7 @@
         <div class="container-fluid">
             <div class="row g-0">
                 <div class="col-12 col-md-3 px-0">
-                    @include('settings.nav_cate')
+                    @include('admin.partials.nav_cate')
                 </div>
                 <div id="settings-main" class="col-12 col-md-9 ps-md-1">
                     <div class="bg-dark p-3" style="border-radius:14px;">
@@ -65,7 +65,7 @@
 
                         {{-- Orders widget --}}
                        <div style="background: rgba(255,255,255,0.02); padding:16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);">
-    <form id="dashboard-filter-form" action="{{ route('settings.dashboard.index') }}" method="GET" class="d-flex flex-wrap align-items-end" style="gap:12px;">
+    <form id="dashboard-filter-form" action="{{ route('admin.dashboard.index') }}" method="GET" class="d-flex flex-wrap align-items-end" style="gap:12px;">
         
         <div class="flex flex-col">
                  <label for="start_date" class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Fecha Inicio</label>
@@ -107,7 +107,7 @@
             </button>
 
             @if(request()->hasAny(['start_date', 'end_date', 'client_id']))
-                <a id="client-clear" href="{{ route('settings.dashboard.index') }}" class="btn btn-sm btn-outline-light">Limpiar</a>
+                <a id="client-clear" href="{{ route('admin.dashboard.index') }}" class="btn btn-sm btn-outline-light">Limpiar</a>
             @endif
         </div>
 
@@ -359,11 +359,11 @@
                                                         const stock = typeof p.stock !== 'undefined' ? parseInt(p.stock) : 0;
                                                         const editUrl = id ? (editBase + '/' + id + '/edit') : '#';
                                                         html += '<div class="list-group-item bg-transparent d-flex justify-content-between align-items-center">'
-                                                                + '<div class="me-3"><div class="fw-semibold text-white">'+name+'</div><div class="small text-white-50">ID: '+id+'</div></div>'
-                                                                + '<div class="text-end">'
-                                                                                + '<div class="mb-2 small '+ (stock<=5 ? 'text-warning' : 'text-white-50')+'">Cantidad: '+stock+'</div>'
-                                                                                + '<button class="btn btn-sm btn-outline-light btn-edit-product" data-edit-url="'+editUrl+'">Editar</button>'
-                                                                                + '</div></div>';
+                                                            + '<div class="me-3"><div class="fw-semibold text-white">'+name+'</div><div class="small text-white-50">ID: '+id+'</div></div>'
+                                                            + '<div class="text-end">'
+                                                                    + '<div class="mb-2 small ' + (stock<=5 ? 'text-warning' : 'text-white-50') + '">Cantidad: '+stock+'</div>'
+                                                                    + '<button class="btn btn-sm btn-outline-light btn-edit-product" data-edit-url="'+editUrl+'">Editar</button>'
+                                                                    + '</div></div>';
                                                 });
                                                 html += '</div>';
                                                     modalBody.innerHTML = html;
@@ -385,63 +385,38 @@
                                         openLowStockModal(catName, low);
                                 });
                                 // Handle edit-in-modal button clicks (event delegation)
-                                document.addEventListener('click', function(e){
-                                        const editBtn = e.target.closest && e.target.closest('.btn-edit-product');
-                                        if (!editBtn) return;
-                                        e.preventDefault();
-                                        const editUrl = editBtn.getAttribute('data-edit-url');
-                                        if (!editUrl) return;
-                                        // load edit form into the same modal
-                                        const modalEl = document.getElementById('lowStockModal');
-                                        const modalBody = document.getElementById('lowStockModalBody');
-                                        const modalTitle = document.getElementById('lowStockModalLabel');
-                                        if (!modalEl || !modalBody) return;
-                                        modalBody.innerHTML = '<div class="text-center text-white-50">Cargando formulario...</div>';
-                                        fetch(editUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
-                                            .then(res => {
-                                                if (!res.ok) throw new Error('Error cargando formulario');
-                                                return res.text();
-                                            })
-                                            .then(html => {
-                                                // try to extract the first <form> from the response
-                                                let parser = new DOMParser();
-                                                let doc = parser.parseFromString(html, 'text/html');
-                                                let form = doc.querySelector('form');
-                                                if (form) {
-                                                    modalBody.innerHTML = '';
-                                                    modalBody.appendChild(form);
-                                                } else {
-                                                    // fallback: insert whole response
-                                                    modalBody.innerHTML = html;
-                                                }
-                                                // show a back button in the modal footer to return to the list
-                                                const backBtn = document.getElementById('lowStockBackBtn');
-                                                if (backBtn) backBtn.classList.remove('d-none');
-                                                // change title to indicate edit
-                                                if (modalTitle) modalTitle.textContent = 'Editar producto';
-                                            })
-                                            .catch(err => {
-                                                modalBody.innerHTML = '<div class="text-danger">No se pudo cargar el formulario.</div>';
-                                                console.error(err);
-                                            });
-                                });
 
-                                // Handle Back button in low stock modal
                                 document.addEventListener('click', function(e){
-                                        const back = e.target.closest && e.target.closest('#lowStockBackBtn');
-                                        if (!back) return;
-                                        e.preventDefault();
-                                        const modalEl = document.getElementById('lowStockModal');
-                                        const modalBody = document.getElementById('lowStockModalBody');
-                                        const modalTitle = document.getElementById('lowStockModalLabel');
-                                        if (!modalEl || !modalBody) return;
-                                        const original = modalEl.dataset.originalList || '<div class="text-white-50">No hay contenidos previos.</div>';
-                                        modalBody.innerHTML = original;
-                                        const backBtn = document.getElementById('lowStockBackBtn');
-                                        if (backBtn) backBtn.classList.add('d-none');
-                                        if (modalTitle) modalTitle.textContent = 'Productos con stock bajo';
-                                });
-                        })();
+                                            const editBtn = e.target.closest && e.target.closest('.btn-edit-product');
+                                            if (!editBtn) return;
+                                            e.preventDefault();
+                                            const editUrl = editBtn.getAttribute('data-edit-url');
+                                            if (!editUrl) return;
+                                            // load edit form into the same modal
+                                            const modalEl = document.getElementById('lowStockModal');
+                                            const modalBody = document.getElementById('lowStockModalBody');
+                                            const modalTitle = document.getElementById('lowStockModalLabel');
+                                            if (!modalEl || !modalBody) return;
+                                            modalBody.innerHTML = '<div class="text-center text-white-50">Cargando formulario...</div>';
+                                            fetch(editUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                                                .then(res => res.text())
+                                                .then(html => {
+                                                    modalBody.innerHTML = html;
+                                                    // show back button
+                                                    const back = document.getElementById('lowStockBackBtn');
+                                                    if (back) back.classList.remove('d-none');
+                                                    // wire back
+                                                    if (back) back.onclick = function(){
+                                                        try { modalBody.innerHTML = modalEl.dataset.originalList || ''; back.classList.add('d-none'); } catch (e) {}
+                                                    };
+                                                })
+                                                .catch(err => {
+                                                    modalBody.innerHTML = '<div class="text-danger">No se pudo cargar el formulario.</div>';
+                                                });
+                                        });
+                                    })();
                 </script>
+
+
     @endsection
-</x-app-layout>           
+</x-app-layout>
