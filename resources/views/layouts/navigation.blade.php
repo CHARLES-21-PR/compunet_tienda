@@ -126,9 +126,11 @@
                             </button>
                         </x-slot>
                         <x-slot name="content">
-                            <a href="{{ route('login') }}" class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm text-sm leading-normal">Log in</a>
+                            <x-dropdown-link :href="route('login')">{{ __('Iniciar sesión') }}</x-dropdown-link>
+                            {{-- <a href="{{ route('login') }}" class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] text-[#1b1b18] border border-transparent hover:border-[#19140035] dark:hover:border-[#3E3E3A] rounded-sm text-sm leading-normal">Log in</a> --}}
                             @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] rounded-sm text-sm leading-normal">Register</a>
+                            <x-dropdown-link :href="route('register')">{{ __('Registrarse') }}</x-dropdown-link>
+                                {{-- <a href="{{ route('register') }}" class="inline-block px-5 py-1.5 dark:text-[#EDEDEC] border-[#19140035] hover:border-[#1915014a] border text-[#1b1b18] dark:border-[#3E3E3A] rounded-sm text-sm leading-normal">Register</a> --}}
                             @endif
                         </x-slot>
                     </x-dropdown>
@@ -210,7 +212,7 @@
                                                 <div class="title">{{ $p->name ?? 'Producto' }}</div>
                                                 <div class="meta">Stock: {{ $p->stock ?? 'N/A' }}</div>
                                             </div>
-                                            <div class="actions"><a href="{{ route('settings.products.edit', ['product' => $p->id]) }}">Editar</a></div>
+                                            <div class="actions"><a href="{{ route('admin.products.edit', ['product' => $p->id]) }}">Editar</a></div>
                                         </div>
                                     @endforeach
                                 </div>
