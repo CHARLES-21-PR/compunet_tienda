@@ -98,13 +98,13 @@
                                 @if(isset($u->role) && $u->role === 'cliente')
                                     <x-dropdown-link :href="route('client.orders.index')">{{ __('Mis pedidos') }}</x-dropdown-link>
                                 @else
-                                    <x-dropdown-link :href="route('profile.edit')">{{ __('Profile') }}</x-dropdown-link>
+                                    <x-dropdown-link :href="route('profile.edit')">{{ __('Perfil') }}</x-dropdown-link>
                                 @endif
                                 @role('admin')
-                                    <x-dropdown-link :href="route('admin.dashboard.index')">{{ __('Settings') }}</x-dropdown-link>
+                                    <x-dropdown-link :href="route('admin.dashboard.index')">{{ __('Panel admin') }}</x-dropdown-link>
                                 @endrole
                                 <form method="POST" action="{{ route('logout') }}">@csrf
-                                    <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Log Out') }}</x-dropdown-link>
+                                    <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Cerrar sesiónS') }}</x-dropdown-link>
                                 </form>
                             </x-slot>
                         </x-dropdown>

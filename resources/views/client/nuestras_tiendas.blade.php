@@ -10,8 +10,8 @@
                     <iframe class="mapmala" src="https://maps.google.com/maps?q=-13.061265,-76.353328&z=15&output=embed" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                 </div>
                 <div class="col-sm coltiendas colti">
-                    {{-- Asegúrate de tener esta imagen en public/images/ --}}
-                    <img src="/images/imperial.webp" class="imgtienda" alt="Tienda Imperial">
+                    {{-- Asegúrate de tener esta imagen en public/img --}}
+                    <img src="/img/imperial.webp" class="imgtienda" alt="Tienda Imperial">
                 </div>
             </div>
         </div>
@@ -32,12 +32,12 @@
             <div class="row colti">
                 <h3 class="textdelogoempre">Trabajamos con:</h3>
                 <div class="dropdown-divider divilog"></div>
-                <div class="col-sm collogoempresas"><img src="/images/loglenovo.webp" class="imglogosempresas" alt="Lenovo"></div>
-                <div class="col-sm collogoempresas"><img src="/images/loghp.webp" class="imglogosempresas" alt="HP"></div>
-                <div class="col-sm collogoempresas"><img src="/images/logepson.webp" class="imglogosempresas" alt="Epson"></div>
-                <div class="col-sm collogoempresas"><img src="/images/logcanon.webp" class="imglogosempresas" alt="Canon"></div>
-                <div class="col-sm collogoempresas"><img src="/images/logintel.webp" class="imglogosempresas" alt="Intel"></div>
-                <div class="col-sm collogoempresas"><img src="/images/logamd.webp" class="imglogosempresas" alt="AMD"></div>
+                <div class="col-sm collogoempresas"><img src="/img/loglenovo.webp" class="imglogosempresas" alt="Lenovo"></div>
+                <div class="col-sm collogoempresas"><img src="/img/loghp.webp" class="imglogosempresas" alt="HP"></div>
+                <div class="col-sm collogoempresas"><img src="/img/logepson.webp" class="imglogosempresas" alt="Epson"></div>
+                <div class="col-sm collogoempresas"><img src="/img/logcanon.webp" class="imglogosempresas" alt="Canon"></div>
+                <div class="col-sm collogoempresas"><img src="/img/logintel.webp" class="imglogosempresas" alt="Intel"></div>
+                <div class="col-sm collogoempresas"><img src="/img/logamd.webp" class="imglogosempresas" alt="AMD"></div>
             </div>
             <div class="dropdown-divider divilog"></div>
         </div>
@@ -45,7 +45,7 @@
         {{-- Tienda San Vicente --}}
         <div class="row rowtectrabajo">
             <div class="col-sm col-pc-tecnico colti">
-                <img src="/images/tiendasanvicente.webp" class="imgtiendascomer" alt="Tienda San Vicente">
+                <img src="/img/tiendasanvicente.webp" class="imgtiendascomer" alt="Tienda San Vicente">
             </div>
             <div class="col-sm coltexttitle colti">
                 <span class="titletecnicotra">Tienda en San Vicente</span>
@@ -62,7 +62,7 @@
                 <iframe class="mapmala" src="https://maps.google.com/maps?q=-12.658645,-76.630456&z=15&output=embed" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
             </div>
             <div class="col-sm col-pc-tecnico colti">
-                <img src="/images/mala.webp" class="imgtiendascomer" alt="Tienda Mala">
+                <img src="/img/mala.webp" class="imgtiendascomer" alt="Tienda Mala">
             </div>
         </div>
     </div>
