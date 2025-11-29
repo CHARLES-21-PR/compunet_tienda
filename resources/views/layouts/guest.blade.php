@@ -37,6 +37,15 @@
                 background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-2) 55%, var(--accent-3) 100%) !important;
                 color: #ffffff !important;
             }
+            /* Ensure inner content (logo, title, paragraph) is perfectly centered */
+            #auth-card .auth-left > .space-y-3 {
+                margin: 0 auto !important;
+                text-align: center !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
             #auth-card .auth-left h1 { color: rgba(255,255,255,0.98) !important; }
             #auth-card .auth-left p { color: rgba(255,255,255,0.9) !important; }
 
@@ -98,8 +107,7 @@
                             <a href="/" class="inline-block justify-center items-center flex gap-2 mb-4">
                                 <x-application-logo class="w-20 h-20" />
                             </a>
-                            <h1 class="text-xl font-semibold">{{ config('app.name', 'Laravel') }}</h1>
-                            <p class="text-sm opacity-90">Bienvenido — administra tu cuenta o crea una nueva.</p>
+                            
                         </div>
                     </div>
 
