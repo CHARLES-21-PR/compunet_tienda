@@ -101,7 +101,7 @@
                                     <x-dropdown-link :href="route('profile.edit')">{{ __('Profile') }}</x-dropdown-link>
                                 @endif
                                 @role('admin')
-                                    <x-dropdown-link :href="route('settings.dashboard.index')">{{ __('Settings') }}</x-dropdown-link>
+                                    <x-dropdown-link :href="route('admin.dashboard.index')">{{ __('Settings') }}</x-dropdown-link>
                                 @endrole
                                 <form method="POST" action="{{ route('logout') }}">@csrf
                                     <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Log Out') }}</x-dropdown-link>
@@ -221,7 +221,7 @@
                             <div class="notif-empty">No hay notificaciones nuevas</div>
                         @endif
                     </div>
-                    <div class="notif-dropdown-footer"><a href="{{ route('settings.notifications.index') }}">Ver todas</a></div>
+                    <div class="notif-dropdown-footer"><a href="{{ route('admin.notifications.index') }}">Ver todas</a></div>
                 </div>
             </div>
             @endrole

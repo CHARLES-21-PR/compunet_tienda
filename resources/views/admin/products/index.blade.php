@@ -1,10 +1,9 @@
-
 <x-app-layout>
     @section('content')
         <div class="container-fluid">
             <div class="row g-0">
                 <div class="col-12 col-md-3 px-0">
-                    @include('settings.nav_cate')
+                    @include('admin.partials.nav_cate')
                 </div>
                     <div id="settings-main" class="col-12 col-md-9 ps-md-1">
                         <div class="bg-dark p-3" style="border-radius:14px;">
@@ -14,7 +13,7 @@
                                 
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                    <form id="productsFilterForm" method="GET" action="{{ route('settings.products.index') }}" class="d-flex align-items-center gap-2">
+                                    <form id="productsFilterForm" method="GET" action="{{ route('admin.products.index') }}" class="d-flex align-items-center gap-2">
                                         <div class="search-input-wrapper" style="position: relative; width: 420px;">
                                             <input id="productsSearchInput" type="search" name="q" value="{{ request('q') }}" class="form-control form-control-sm text-dark search-with-icon" placeholder="Buscar producto..." style="background: rgba(255,255,255,0.95); padding-left: .75rem; padding-right: 2.2rem; width:100%; height:40px;">
                                             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); color: #0f172a; pointer-events: none;"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -25,9 +24,9 @@
                                                 <option value="{{ $cat->id }}" @if(request('category') == $cat->id) selected @endif>{{ $cat->name }}</option>
                                             @endforeach
                                         </select>
-                                        <a href="{{ route('settings.products.index') }}" class="btn btn-outline-light btn-sm">Limpiar</a>
+                                        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-light btn-sm">Limpiar</a>
                                         <a href="#" class="btn btn-outline-light btn-sm">Exportar</a>
-                                        <a href="{{ route('settings.products.create') }}" class="btn btn-primary btn-sm">Crear</a>
+                                        <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm">Crear</a>
                                     </form>
                             </div>
                         </div>
@@ -63,8 +62,8 @@
                                                 <td class="product-desc" title="{{ $prod->description }}">{{ \Illuminate\Support\Str::limit(strip_tags($prod->description), 100) }}</td>
                                                 <td>{{ $prod->stock }}</td>
                                                 <td>
-                                                    <a href="{{ route('settings.products.edit', $prod) }}" class="btn btn-sm btn-secondary">Editar</a>
-                                                    <form action="{{ route('settings.products.destroy', $prod) }}" method="POST" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar producto #{{ $prod->id }}" data-confirm-message="¿Eliminar el producto '{{ addslashes($prod->name) }}' (ID #{{ $prod->id }})? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
+                                                    <a href="{{ route('admin.products.edit', $prod) }}" class="btn btn-sm btn-secondary">Editar</a>
+                                                    <form action="{{ route('admin.products.destroy', $prod) }}" method="POST" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar producto #{{ $prod->id }}" data-confirm-message="¿Eliminar el producto '{{ addslashes($prod->name) }}' (ID #{{ $prod->id }})? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button class="btn btn-sm btn-danger">Eliminar</button>
@@ -76,6 +75,7 @@
                                 </table>
                             </div>
                             {{-- pagination (moved to top) --}}
+                            
                         @endif
                     </div>
                 </div>
@@ -91,15 +91,6 @@
     overflow:hidden;
     text-overflow:ellipsis;
 }
-/* Si prefieres limitar a múltiples líneas, usa este bloque en su lugar:
-.product-desc{
-    display:-webkit-box;
-    -webkit-line-clamp:3; /* número de líneas */
-    -webkit-box-orient:vertical;
-    overflow:hidden;
-}
-*/
-
 </style>
 
 <script>

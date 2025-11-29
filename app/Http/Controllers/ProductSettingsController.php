@@ -33,12 +33,12 @@ class ProductSettingsController extends Controller
         // categories for the filter select
         $categories = Category::orderBy('name')->get();
 
-        return view('settings.products.index', compact('products', 'categories', 'q', 'categoryId'));
+        return view('admin.products.index', compact('products', 'categories', 'q', 'categoryId'));
     }
     public function create()
     {
         $categories = Category::orderBy('name')->get();
-        return view('settings.products.create', compact('categories'));
+        return view('admin.products.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -88,9 +88,9 @@ class ProductSettingsController extends Controller
         $categories = Category::orderBy('name')->get();
         // If this is an AJAX request (modal), return only the form partial to avoid full layout/nav being returned
         if (request()->ajax() || request()->wantsJson()) {
-            return view('settings.products.partials.edit-form', compact('product', 'categories'));
+            return view('admin.products.partials.edit-form', compact('product', 'categories'));
         }
-        return view('settings.products.edit', compact('product', 'categories'));
+        return view('admin.products.edit', compact('product', 'categories'));
     }
     public function update(Request $request, Product $product)
     {
@@ -122,11 +122,11 @@ class ProductSettingsController extends Controller
 
         $product->update($data);
 
-        return redirect()->route('settings.products.index')->with('success', 'Producto actualizado exitosamente.');
+        return redirect()->route('admin.products.index')->with('success', 'Producto actualizado exitosamente.');
     }
     public function destroy(Product $product)
     {
         $product->delete();
-        return redirect()->route('settings.products.index')->with('success', 'Producto eliminado exitosamente.');
+        return redirect()->route('admin.products.index')->with('success', 'Producto eliminado exitosamente.');
     }
 }

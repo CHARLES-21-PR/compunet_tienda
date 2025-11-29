@@ -1,2 +1,1 @@
-<x-app-layout>
-</x-app-layout>
+@include('client.nuestras_tiendas')

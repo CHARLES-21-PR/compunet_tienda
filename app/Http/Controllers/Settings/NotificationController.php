@@ -35,6 +35,6 @@ class NotificationController extends Controller
             $lowStock = collect();
         }
 
-        return view('settings.notifications.index', compact('pendingYape','lowStock'));
+        return view('admin.notifications.index', compact('pendingYape','lowStock'));
     }
 }
