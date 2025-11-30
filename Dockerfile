@@ -17,3 +17,6 @@ RUN php artisan config:cache
 RUN php artisan route:cache
 
 RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Comando de arranque en Render
+CMD ["php-fpm"]
