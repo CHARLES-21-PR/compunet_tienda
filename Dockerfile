@@ -1,53 +1,36 @@
-# ---------------------------------------------------------
-# Etapa 1: Composer + PHP con extensiones necesarias
-# ---------------------------------------------------------
-FROM php:8.2-fpm AS build
-
-# Instalar dependencias requeridas por Laravel
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libzip-dev \
-    libonig-dev \
-    libxml2-dev
-
-# Extensiones de PHP necesarias para Laravel
-RUN docker-php-ext-install pdo pdo_mysql mbstring zip xml
-
-# Instalar Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
+# Etapa 1: Composer
+FROM composer:2 AS composer_stage
 WORKDIR /app
 
-# Copiar archivo composer
+# Copiar solo composer.json y composer.lock primero (cache más eficiente)
 COPY composer.json composer.lock ./
 
-# Instalar dependencias sin dev
-RUN composer install --no-dev --optimize-autoloader
+# Instalar dependencias sin dev y sin scripts
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Copiar todo el proyecto
+# Copiar el resto del proyecto
 COPY . .
 
-# ---------------------------------------------------------
-# Etapa 2: Producción
-# ---------------------------------------------------------
+# Etapa 2: PHP-FPM Productivo
 FROM php:8.2-fpm
-
 WORKDIR /var/www/html
 
 # Extensiones necesarias
-RUN apt-get update && apt-get install -y \
-    libzip-dev \
-    libonig-dev \
-    libxml2-dev && \
-    docker-php-ext-install pdo pdo_mysql mbstring zip xml
+RUN docker-php-ext-install pdo pdo_mysql
 
-# Copiar aplicación desde build
-COPY --from=build /app ./
+# Copiar archivos ya procesados
+COPY --from=composer_stage /app ./
 
-# Permisos correctos
+# Scripts artisan después de copiar y con .env cargado por Render
+RUN php artisan package:discover
+RUN php artisan config:cache
+RUN php artisan route:cache
+
+# Permisos
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Caches de Laravel
-RUN php artisan config:cache && \
-    php artisan route:cache
+# Puerto
+EXPOSE 9000
+
+CMD ["php-fpm"]
+
