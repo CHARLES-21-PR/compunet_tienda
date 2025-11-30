@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -17,7 +17,7 @@ return new class extends Migration
         // to updating existing rows to a safe default.
         try {
             Schema::table('orders', function (Blueprint $table) {
-                $table->enum('status', ['pagado','entregado','cancelado','fallido'])->default('pagado')->change();
+                $table->enum('status', ['pagado', 'entregado', 'cancelado', 'fallido'])->default('pagado')->change();
             });
         } catch (\Throwable $e) {
             DB::table('orders')->whereNull('status')->orWhere('status', '')->update(['status' => 'pagado']);
@@ -37,18 +37,21 @@ return new class extends Migration
             $driver = config('database.default');
         }
 
-        if (in_array($driver, ['mysql','pdo_mysql'])) {
+        if (in_array($driver, ['mysql', 'pdo_mysql'])) {
             DB::statement("ALTER TABLE `orders` MODIFY COLUMN `status` VARCHAR(191) NOT NULL DEFAULT 'pending';");
-        } elseif (in_array($driver, ['pgsql','postgres','pgsql'])) {
+        } elseif (in_array($driver, ['pgsql', 'postgres', 'pgsql'])) {
             DB::statement("ALTER TABLE orders ALTER COLUMN status SET DEFAULT 'pending';");
-            try { DB::statement("ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;"); } catch (\Throwable $e) {}
+            try {
+                DB::statement('ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;');
+            } catch (\Throwable $e) {
+            }
         } else {
             try {
                 Schema::table('orders', function (Blueprint $table) {
                     $table->string('status')->default('pending')->change();
                 });
             } catch (\Throwable $e) {
-                logger()->warning('Migration rollback update_orders_status_constraints: could not revert column definition on driver ' . ($driver ?? 'unknown') . '.');
+                logger()->warning('Migration rollback update_orders_status_constraints: could not revert column definition on driver '.($driver ?? 'unknown').'.');
             }
         }
     }

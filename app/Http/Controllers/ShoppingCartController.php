@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Models\Product;
 
 class ShoppingCartController extends Controller
 {
@@ -31,7 +31,7 @@ class ShoppingCartController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
         ]);
 
         $product = Product::find($data['product_id']);
@@ -48,11 +48,14 @@ class ShoppingCartController extends Controller
             if ($requestedTotal > intval($product->stock)) {
                 // allowed_add: how many additional units can be added to current cart (for non-buy-now)
                 $allowed = $isBuyNow ? intval($product->stock) : (intval($product->stock) - $existing);
-                if ($allowed < 0) $allowed = 0;
+                if ($allowed < 0) {
+                    $allowed = 0;
+                }
                 if ($request->wantsJson() || $request->header('Accept') === 'application/json') {
                     return response()->json(['success' => false, 'message' => 'Stock insuficiente', 'allowed_add' => $allowed, 'allowed_total' => intval($product->stock)], 422);
                 }
-                return back()->with('error', 'Stock insuficiente. Solo quedan ' . intval($product->stock) . ' unidades.');
+
+                return back()->with('error', 'Stock insuficiente. Solo quedan '.intval($product->stock).' unidades.');
             }
         }
 
@@ -112,7 +115,7 @@ class ShoppingCartController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
         ]);
 
         $cart = session('cart', []);
@@ -140,7 +143,7 @@ class ShoppingCartController extends Controller
             $total += ($item['quantity'] * $item['price']);
         }
 
-        return response()->json(['success' => true, 'count' => $count, 'total' => round($total,2)]);
+        return response()->json(['success' => true, 'count' => $count, 'total' => round($total, 2)]);
     }
 
     /**
@@ -149,7 +152,7 @@ class ShoppingCartController extends Controller
     public function remove(Request $request)
     {
         $data = $request->validate([
-            'product_id' => 'required|integer|exists:products,id'
+            'product_id' => 'required|integer|exists:products,id',
         ]);
 
         $cart = session('cart', []);
@@ -166,7 +169,7 @@ class ShoppingCartController extends Controller
             $total += ($item['quantity'] * $item['price']);
         }
 
-        return response()->json(['success' => true, 'count' => $count, 'total' => round($total,2)]);
+        return response()->json(['success' => true, 'count' => $count, 'total' => round($total, 2)]);
     }
 
     /**
@@ -176,12 +179,12 @@ class ShoppingCartController extends Controller
     public function checkoutSelected(Request $request)
     {
         $data = $request->validate([
-            'selected' => 'required|array|min:1'
+            'selected' => 'required|array|min:1',
         ]);
 
         $selected = $data['selected'];
         $cart = session('cart', []);
-        if (!is_array($cart) || empty($cart)) {
+        if (! is_array($cart) || empty($cart)) {
             return response()->json(['success' => false, 'message' => 'El carrito está vacío'], 422);
         }
 
@@ -190,6 +193,7 @@ class ShoppingCartController extends Controller
             // if frontend sent the exact session key
             if (isset($cart[$k])) {
                 $new[$k] = $cart[$k];
+
                 continue;
             }
 
@@ -197,16 +201,19 @@ class ShoppingCartController extends Controller
             foreach ($cart as $ck => $entry) {
                 // entry may be array with 'id' or 'product_id'
                 if (is_array($entry)) {
-                    if (isset($entry['id']) && ((string)$entry['id'] === (string)$k)) {
-                        $new[$ck] = $entry; break;
+                    if (isset($entry['id']) && ((string) $entry['id'] === (string) $k)) {
+                        $new[$ck] = $entry;
+                        break;
                     }
-                    if (isset($entry['product_id']) && ((string)$entry['product_id'] === (string)$k)) {
-                        $new[$ck] = $entry; break;
+                    if (isset($entry['product_id']) && ((string) $entry['product_id'] === (string) $k)) {
+                        $new[$ck] = $entry;
+                        break;
                     }
                 } else {
                     // entry could be object-like
-                    if (isset($entry->id) && ((string)$entry->id === (string)$k)) {
-                        $new[$ck] = (array)$entry; break;
+                    if (isset($entry->id) && ((string) $entry->id === (string) $k)) {
+                        $new[$ck] = (array) $entry;
+                        break;
                     }
                 }
             }

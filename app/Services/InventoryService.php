@@ -12,7 +12,10 @@ class InventoryService
      */
     public function canReserve(Product $product, int $requestedQuantity): bool
     {
-        if ($product->stock === null) return true; // unlimited
+        if ($product->stock === null) {
+            return true;
+        } // unlimited
+
         return $requestedQuantity <= intval($product->stock);
     }
 
@@ -26,15 +29,22 @@ class InventoryService
      */
     public function decreaseStock(Product $product, int $quantity): bool
     {
-        if ($product->stock === null) return true; // unlimited
+        if ($product->stock === null) {
+            return true;
+        } // unlimited
 
         // Use a transaction / optimistic check to avoid race conditions
-        return DB::transaction(function() use ($product, $quantity) {
+        return DB::transaction(function () use ($product, $quantity) {
             $p = Product::lockForUpdate()->find($product->id);
-            if (! $p) return false;
+            if (! $p) {
+                return false;
+            }
             $current = intval($p->stock);
-            if ($quantity > $current) return false;
+            if ($quantity > $current) {
+                return false;
+            }
             $p->stock = $current - $quantity;
+
             return $p->save();
         });
     }
@@ -44,11 +54,17 @@ class InventoryService
      */
     public function increaseStock(Product $product, int $quantity): bool
     {
-        if ($product->stock === null) return true;
-        return DB::transaction(function() use ($product, $quantity) {
+        if ($product->stock === null) {
+            return true;
+        }
+
+        return DB::transaction(function () use ($product, $quantity) {
             $p = Product::lockForUpdate()->find($product->id);
-            if (! $p) return false;
+            if (! $p) {
+                return false;
+            }
             $p->stock = intval($p->stock) + $quantity;
+
             return $p->save();
         });
     }

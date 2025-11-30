@@ -11,23 +11,20 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-  
+
         $role = Role::firstOrCreate(['name' => 'admin']);
 
-    
         $user = User::firstOrCreate(
             ['email' => 'admin@admin.com'],
             [
                 'name' => 'Administrador',
-                'password' => Hash::make('-GpZND<I(n37a26~R-'), 
+                'password' => Hash::make('Caeñete@900Net'),
                 'role' => 'admin',
             ]
         );
 
-    
         $user->assignRole($role);
 
-      
         $this->call([\Database\Seeders\OrderStatusesSeeder::class]);
     }
 }

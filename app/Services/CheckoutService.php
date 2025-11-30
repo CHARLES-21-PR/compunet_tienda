@@ -7,9 +7,13 @@ use App\Models\Product;
 class CheckoutService
 {
     protected $cartService;
+
     protected $inventory;
+
     protected $payment;
+
     protected $invoice;
+
     protected $shipping;
 
     public function __construct(CartService $cartService, InventoryService $inventory, PaymentService $payment, InvoiceService $invoice, ShippingService $shipping)
@@ -36,23 +40,27 @@ class CheckoutService
             }
             if (empty($productId)) {
                 // if entry key looks like an id, use it
-                if (is_int($key) || ctype_digit((string)$key)) {
-                    $productId = (int)$key;
+                if (is_int($key) || ctype_digit((string) $key)) {
+                    $productId = (int) $key;
                 }
             }
             if (empty($productId)) {
                 continue;
             }
             $product = Product::find($productId);
-            if (!$product) continue;
+            if (! $product) {
+                continue;
+            }
             $quantity = 1;
-            if (is_array($entry)) $quantity = intval($entry['quantity'] ?? 1);
+            if (is_array($entry)) {
+                $quantity = intval($entry['quantity'] ?? 1);
+            }
             // check availability
             $available = $this->inventory->available($product);
             if ($quantity > $available) {
                 return [
                     'success' => false,
-                    'message' => 'Stock insuficiente para ' . $product->name,
+                    'message' => 'Stock insuficiente para '.$product->name,
                     'product_id' => $product->id,
                     'product_name' => $product->name,
                     'requested' => $quantity,

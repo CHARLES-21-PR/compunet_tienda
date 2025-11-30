@@ -3,9 +3,9 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategorySettingsController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductSettingsController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,7 +17,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/settings/nuestras_tiendas', [Controller::class, 'nuestra_tiendas'])->name('nuestras_tiendas');
 
-Route::get('/Internet_Ilimitado',[Controller::class, 'Internet_Ilimitado'])->name('Internet_Ilimitado');
+Route::get('/Internet_Ilimitado', [Controller::class, 'Internet_Ilimitado'])->name('Internet_Ilimitado');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -62,21 +62,19 @@ Route::post('/shopping-cart/remove', [\App\Http\Controllers\ShoppingCartControll
 Route::post('/shopping-cart/checkout-selected', [\App\Http\Controllers\ShoppingCartController::class, 'checkoutSelected'])->name('shopping_carts.checkout_selected');
 
 Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(function () {
-    Route::get('/settings/categories', [CategorySettingsController::class,'index'])->name('admin.categories.index');
+    Route::get('/settings/categories', [CategorySettingsController::class, 'index'])->name('admin.categories.index');
 
-
-    //Dashboard de administracion
+    // Dashboard de administracion
     Route::get('/settings/dashboard', [Controller::class, 'index_dashboard'])->name('admin.dashboard.index');
-    
 
-    //crud categorias
+    // crud categorias
     Route::get('/settings/categories/create', [CategorySettingsController::class, 'create'])->name('admin.categories.create');
     Route::post('/settings/categories', [CategorySettingsController::class, 'store'])->name('admin.caadmin.store');
     Route::get('/settings/categories/{category:id}/edit', [CategorySettingsController::class, 'edit'])->name('admin.categories.edit');
     Route::put('/settings/categories/{category:id}', [CategorySettingsController::class, 'update'])->name('admin.categories.update');
     Route::delete('/settings/categories/{category:id}', [CategorySettingsController::class, 'destroy'])->name('admin.categories.destroy');
 
-    //crud productos
+    // crud productos
 
     Route::get('/settings/products', [ProductSettingsController::class, 'index'])->name('admin.products.index');
     Route::get('/settings/products/create', [ProductSettingsController::class, 'create'])->name('admin.products.create');
@@ -84,7 +82,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
     Route::get('/settings/products/{product:id}/edit', [ProductSettingsController::class, 'edit'])->name('admin.products.edit');
     Route::put('/settings/products/{product:id}', [ProductSettingsController::class, 'update'])->name('admin.products.update');
     Route::delete('/settings/products/{product:id}', [ProductSettingsController::class, 'destroy'])->name('admin.products.destroy');
-    
+
     // Pedidos (ordenes)
     Route::get('/settings/orders', [\App\Http\Controllers\OrderSettingsController::class, 'index'])->name('admin.orders.index');
     Route::get('/settings/orders/{order}', [\App\Http\Controllers\OrderSettingsController::class, 'show'])->name('admin.orders.show');
@@ -95,7 +93,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
     // Fallback GET that generates invoice and redirects to download (useful when JS fails)
     Route::get('/settings/orders/{order}/invoice/generate-download', [\App\Http\Controllers\OrderSettingsController::class, 'generateInvoiceDownload'])->name('admin.orders.generate_invoice_download');
     Route::get('/settings/invoices/{invoice}/download', [\App\Http\Controllers\OrderSettingsController::class, 'downloadInvoice'])->name('admin.invoices.download');
-    
+
     // Clientes (CRUD básico)
     Route::get('/settings/clients', [\App\Http\Controllers\Settings\ClientController::class, 'index'])->name('admin.clients.index');
     Route::get('/settings/clients/create', [\App\Http\Controllers\Settings\ClientController::class, 'create'])->name('admin.clients.create');
@@ -105,7 +103,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
     Route::delete('/settings/clients/{client}', [\App\Http\Controllers\Settings\ClientController::class, 'destroy'])->name('admin.clients.destroy');
     Route::get('/settings/clients/{client}', [\App\Http\Controllers\Settings\ClientController::class, 'show'])->name('admin.clients.show');
     Route::get('/settings/orders/{order}/invoice/xml', [\App\Http\Controllers\OrderSettingsController::class, 'exportInvoiceXml'])->name('admin.orders.export_xml');
-    
+
     // Notifications for admin (pending Yape orders, low stock)
     Route::get('/settings/notifications', [\App\Http\Controllers\Settings\NotificationController::class, 'index'])->name('admin.notifications.index');
 });

@@ -6,8 +6,8 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class Controller extends BaseController
 {
@@ -28,7 +28,7 @@ class Controller extends BaseController
                     'auth_id' => Auth::id(),
                     'session_id' => session()->getId(),
                     'cookies' => $request->cookies->all(),
-                    'all_query' => $request->query()
+                    'all_query' => $request->query(),
                 ]);
             }
         } catch (\Throwable $e) {
@@ -43,8 +43,10 @@ class Controller extends BaseController
             // Get categories with product counts and a few products (include stock).
             // Order categories by products_count desc so busy categories appear first.
             $categories = \App\Models\Category::withCount('products')
-                ->with(['products' => function($q){ $q->select('id','name','category_id','stock')->orderBy('stock','desc')->limit(6); }])
-                ->orderBy('products_count','desc')
+                ->with(['products' => function ($q) {
+                    $q->select('id', 'name', 'category_id', 'stock')->orderBy('stock', 'desc')->limit(6);
+                }])
+                ->orderBy('products_count', 'desc')
                 ->orderBy('name')
                 ->get();
 
@@ -58,9 +60,9 @@ class Controller extends BaseController
             if (empty($start) && empty($end)) {
                 $start = now()->format('Y-m-d');
                 $end = now()->format('Y-m-d');
-            } elseif (empty($start) && !empty($end)) {
+            } elseif (empty($start) && ! empty($end)) {
                 $start = $end;
-            } elseif (!empty($start) && empty($end)) {
+            } elseif (! empty($start) && empty($end)) {
                 $end = $start;
             }
 
@@ -78,8 +80,8 @@ class Controller extends BaseController
                 $start = $s->format('Y-m-d');
                 $end = $e->format('Y-m-d');
             } catch (\Throwable $ex) {
-                $startDate = ($start ?: now()->format('Y-m-d')) . ' 00:00:00';
-                $endDate = ($end ?: now()->format('Y-m-d')) . ' 23:59:59';
+                $startDate = ($start ?: now()->format('Y-m-d')).' 00:00:00';
+                $endDate = ($end ?: now()->format('Y-m-d')).' 23:59:59';
             }
 
             // Log the received date and client filters for debugging
@@ -90,14 +92,14 @@ class Controller extends BaseController
                     'startDate' => $startDate,
                     'endDate' => $endDate,
                     'client_id' => $request->query('client_id'),
-                    'client_name' => $request->query('client_name')
+                    'client_name' => $request->query('client_name'),
                 ]);
             } catch (\Throwable $_logE) {
                 // no-op
             }
 
             // Aggregation: orders count per day within range
-            $ordersCountQuery = \App\Models\Order::selectRaw("DATE(created_at) as date, count(*) as count")
+            $ordersCountQuery = \App\Models\Order::selectRaw('DATE(created_at) as date, count(*) as count')
                 ->whereDate('created_at', '>=', $start)
                 ->whereDate('created_at', '<=', $end)
                 ->groupBy('date')
@@ -106,12 +108,12 @@ class Controller extends BaseController
             // Apply client filter to the aggregation as well (client_id or client_name)
             $clientName = $request->query('client_name') ?? $request->query('user_name');
             $clientId = $request->query('client_id') ?? $request->query('user_id');
-            if (!empty($clientId)) {
+            if (! empty($clientId)) {
                 $ordersCountQuery->where('user_id', $clientId);
-            } elseif (!empty($clientName)) {
-                $ordersCountQuery->whereHas('user', function($q) use ($clientName) {
+            } elseif (! empty($clientName)) {
+                $ordersCountQuery->whereHas('user', function ($q) use ($clientName) {
                     $q->where('name', 'like', "%{$clientName}%")
-                      ->orWhere('email', 'like', "%{$clientName}%");
+                        ->orWhere('email', 'like', "%{$clientName}%");
                 });
             }
 
@@ -136,34 +138,34 @@ class Controller extends BaseController
 
             // Optional server-side client filters: client_name or client_id
             // Use previously read 'client_id' / 'client_name' to match the dashboard form
-            if (!empty($clientId)) {
+            if (! empty($clientId)) {
                 $ordersQuery->where('user_id', $clientId);
-            } elseif (!empty($clientName)) {
+            } elseif (! empty($clientName)) {
                 // The users table stores full name in `name` (not firstname/lastname).
                 // Search by `name` or `email` to avoid SQL errors on missing columns.
-                $ordersQuery->whereHas('user', function($q) use ($clientName) {
+                $ordersQuery->whereHas('user', function ($q) use ($clientName) {
                     $q->where('name', 'like', "%{$clientName}%")
-                      ->orWhere('email', 'like', "%{$clientName}%");
+                        ->orWhere('email', 'like', "%{$clientName}%");
                 });
             }
 
             // Provide a clients list for the select filter (limit to 200).
             // Use Spatie roles to return only users with role 'cliente' (safer than scanning all users).
             try {
-                $clients = \App\Models\User::role('cliente')->orderBy('name')->limit(200)->get(['id','name','email']);
+                $clients = \App\Models\User::role('cliente')->orderBy('name')->limit(200)->get(['id', 'name', 'email']);
                 // If Spatie returns no users, try fallback to a `role` column (legacy)
                 if (empty($clients) || $clients->isEmpty()) {
-                    $clients = \App\Models\User::where('role', 'cliente')->orderBy('name')->limit(200)->get(['id','name','email']);
+                    $clients = \App\Models\User::where('role', 'cliente')->orderBy('name')->limit(200)->get(['id', 'name', 'email']);
                 }
             } catch (\Throwable $_e) {
                 // If role() scope isn't available or fails, try legacy column 'role', then fallback to general users
                 try {
-                    $clients = \App\Models\User::where('role', 'cliente')->orderBy('name')->limit(200)->get(['id','name','email']);
+                    $clients = \App\Models\User::where('role', 'cliente')->orderBy('name')->limit(200)->get(['id', 'name', 'email']);
                     if (empty($clients) || $clients->isEmpty()) {
-                        $clients = \App\Models\User::orderBy('name')->limit(200)->get(['id','name','email']);
+                        $clients = \App\Models\User::orderBy('name')->limit(200)->get(['id', 'name', 'email']);
                     }
                 } catch (\Throwable $_e2) {
-                    $clients = \App\Models\User::orderBy('name')->limit(200)->get(['id','name','email']);
+                    $clients = \App\Models\User::orderBy('name')->limit(200)->get(['id', 'name', 'email']);
                 }
             }
 
@@ -181,15 +183,15 @@ class Controller extends BaseController
             }
 
             // Fallback: if we filtered by client_id but no orders found, try to match by shipping_address email
-            if (!empty($clientId) && $recentOrders->isEmpty()) {
+            if (! empty($clientId) && $recentOrders->isEmpty()) {
                 try {
                     $u = \App\Models\User::find($clientId);
-                    if ($u && !empty($u->email)) {
-                        $fallbackQuery = \App\Models\Order::with(['user','payments'])
+                    if ($u && ! empty($u->email)) {
+                        $fallbackQuery = \App\Models\Order::with(['user', 'payments'])
                             ->whereDate('created_at', '>=', $start)
                             ->whereDate('created_at', '<=', $end)
                             ->where('shipping_address->email', $u->email)
-                            ->orderBy('created_at','desc');
+                            ->orderBy('created_at', 'desc');
                         $fallbackOrders = $fallbackQuery->limit(100)->get();
                         if ($fallbackOrders->isNotEmpty()) {
                             $recentOrders = $fallbackOrders;
@@ -200,7 +202,8 @@ class Controller extends BaseController
                                     'sql' => $fallbackQuery->toSql(),
                                     'bindings' => $fallbackQuery->getBindings(),
                                 ]);
-                            } catch (\Throwable $_e) {}
+                            } catch (\Throwable $_e) {
+                            }
                         }
                     }
                 } catch (\Throwable $_e) {
@@ -223,7 +226,6 @@ class Controller extends BaseController
         return view('admin.dashboard.index', compact('totalProducts', 'inStock', 'outOfStock', 'categories', 'totalOrders', 'recentOrders', 'ordersCountByDay', 'start', 'end', 'clientName', 'clients', 'clientId'));
     }
 
-    
     public function Internet_Ilimitado()
     {
         return view('Internet_Ilimitado');

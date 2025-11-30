@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -10,22 +11,26 @@ class InvoiceService
     /**
      * Create a demo SUNAT invoice/boleta for the given order_id.
      * This generates a simulated SUNAT payload and stores it in `invoices.data`.
-    */
+     */
     public function createInvoice(array $orderData): array
     {
         $orderId = $orderData['order_id'] ?? null;
-        if (! $orderId) return ['error' => 'order_id_required'];
+        if (! $orderId) {
+            return ['error' => 'order_id_required'];
+        }
 
         try {
             $order = \App\Models\Order::with('items')->find($orderId);
-            if (! $order) return ['error' => 'order_not_found'];
+            if (! $order) {
+                return ['error' => 'order_not_found'];
+            }
 
             // Determine document type: factura (01) if customer RUC present, otherwise boleta (03)
             $customer = $order->user ? $order->user : null;
             $ship = is_array($order->shipping_address) ? $order->shipping_address : ($order->shipping_address ? json_decode($order->shipping_address, true) : []);
             // Preferir RUC si existe en shipping_address y tiene 11 dígitos (valor de RUC peruano)
             $customerRuc = $ship['ruc'] ?? ($customer->ruc ?? null);
-            if (!empty($customerRuc) && ctype_digit((string)$customerRuc) && strlen((string)$customerRuc) === 11) {
+            if (! empty($customerRuc) && ctype_digit((string) $customerRuc) && strlen((string) $customerRuc) === 11) {
                 $docType = '01'; // factura
             } else {
                 $docType = '03'; // boleta
@@ -34,13 +39,13 @@ class InvoiceService
             $seriesPrefix = $docType === '01' ? 'F001' : 'B001';
 
             // compute next sequential number for this series
-            $last = \Illuminate\Support\Facades\DB::table('invoices')->where('invoice_number', 'like', $seriesPrefix . '-%')->orderBy('id', 'desc')->first();
+            $last = \Illuminate\Support\Facades\DB::table('invoices')->where('invoice_number', 'like', $seriesPrefix.'-%')->orderBy('id', 'desc')->first();
             $nextNum = 1;
             if ($last && preg_match('/-(\d+)$/', $last->invoice_number, $m)) {
                 $nextNum = intval($m[1]) + 1;
             }
             $numberFormatted = str_pad($nextNum, 8, '0', STR_PAD_LEFT);
-            $invoiceNumber = $seriesPrefix . '-' . $numberFormatted;
+            $invoiceNumber = $seriesPrefix.'-'.$numberFormatted;
 
             // Build items array and totals
             $items = [];
@@ -60,23 +65,25 @@ class InvoiceService
             try {
                 $productIds = [];
                 foreach ($items as $it) {
-                    if (!empty($it['product_id'])) $productIds[] = $it['product_id'];
+                    if (! empty($it['product_id'])) {
+                        $productIds[] = $it['product_id'];
+                    }
                 }
-                if (!empty($productIds)) {
+                if (! empty($productIds)) {
                     $products = \App\Models\Product::with('category')->whereIn('id', array_values(array_unique($productIds)))->get()->keyBy('id');
                     foreach ($items as &$itRef) {
                         $itRef['categoria'] = null;
-                        if (!empty($itRef['product_id']) && isset($products[$itRef['product_id']])) {
+                        if (! empty($itRef['product_id']) && isset($products[$itRef['product_id']])) {
                             $prod = $products[$itRef['product_id']];
-                            if ($prod && isset($prod->category) && !empty($prod->category->name)) {
-                                $itRef['categoria'] = (string)$prod->category->name;
+                            if ($prod && isset($prod->category) && ! empty($prod->category->name)) {
+                                $itRef['categoria'] = (string) $prod->category->name;
                             }
                         }
                     }
                     unset($itRef);
                 }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('InvoiceService: no se pudo enriquecer categoría de items: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('InvoiceService: no se pudo enriquecer categoría de items: '.$e->getMessage());
             }
 
             $subtotal = round($subtotal, 2);
@@ -99,19 +106,19 @@ class InvoiceService
 
             // Validar formato del documento fiscal antes de enviar al proveedor
             if ($docType === '01') { // factura -> RUC required (11 digits)
-                if (empty($customerDoc) || !ctype_digit((string)$customerDoc) || strlen((string)$customerDoc) !== 11) {
+                if (empty($customerDoc) || ! ctype_digit((string) $customerDoc) || strlen((string) $customerDoc) !== 11) {
                     return [
                         'success' => false,
                         'error' => 'invalid_ruc',
-                        'message' => 'RUC inválido o ausente. Para emitir factura el RUC debe tener 11 dígitos numéricos y estar activo en SUNAT.'
+                        'message' => 'RUC inválido o ausente. Para emitir factura el RUC debe tener 11 dígitos numéricos y estar activo en SUNAT.',
                     ];
                 }
             } else { // boleta -> DNI required (8 digits)
-                if (empty($customerDoc) || !ctype_digit((string)$customerDoc) || strlen((string)$customerDoc) !== 8) {
+                if (empty($customerDoc) || ! ctype_digit((string) $customerDoc) || strlen((string) $customerDoc) !== 8) {
                     return [
                         'success' => false,
                         'error' => 'invalid_dni',
-                        'message' => 'DNI inválido o ausente. Para emitir boleta el DNI debe tener 8 dígitos numéricos.'
+                        'message' => 'DNI inválido o ausente. Para emitir boleta el DNI debe tener 8 dígitos numéricos.',
                     ];
                 }
             }
@@ -136,13 +143,20 @@ class InvoiceService
 
             // Determine currency code expected by the provider: 1=S/, 2=US$, 3=€, 4=£
             $orderCurrency = null;
-            if (!empty($order->currency)) $orderCurrency = $order->currency;
-            elseif (!empty($ship['currency'])) $orderCurrency = $ship['currency'];
-            $currency = strtoupper(trim((string)($orderCurrency ?? 'PEN')));
+            if (! empty($order->currency)) {
+                $orderCurrency = $order->currency;
+            } elseif (! empty($ship['currency'])) {
+                $orderCurrency = $ship['currency'];
+            }
+            $currency = strtoupper(trim((string) ($orderCurrency ?? 'PEN')));
             $currencyCode = 1; // default to PEN
-            if (in_array($currency, ['USD', 'US$', '$', 'DOLAR', 'DÓLAR', 'DOLLAR'])) $currencyCode = 2;
-            elseif (in_array($currency, ['EUR', '€', 'EURO'])) $currencyCode = 3;
-            elseif (in_array($currency, ['GBP', '£', 'LIBRA', 'POUND'])) $currencyCode = 4;
+            if (in_array($currency, ['USD', 'US$', '$', 'DOLAR', 'DÓLAR', 'DOLLAR'])) {
+                $currencyCode = 2;
+            } elseif (in_array($currency, ['EUR', '€', 'EURO'])) {
+                $currencyCode = 3;
+            } elseif (in_array($currency, ['GBP', '£', 'LIBRA', 'POUND'])) {
+                $currencyCode = 4;
+            }
 
             // Build payload compatible with external provider or Greenter
             $providerPayload = [
@@ -150,7 +164,7 @@ class InvoiceService
                 'tipo_de_comprobante' => $docType, // '01' or '03'
                 'serie' => $seriesPrefix,
                 'numero' => ltrim($numberFormatted, '0'),
-                'cliente_tipo_de_documento' => (!empty($customerDoc) && strlen($customerDoc) >= 11) ? '6' : '1',
+                'cliente_tipo_de_documento' => (! empty($customerDoc) && strlen($customerDoc) >= 11) ? '6' : '1',
                 'cliente_numero_de_documento' => $customerDoc ?? '',
                 'cliente_denominacion' => $customerName,
                 'cliente_direccion' => $ship['address'] ?? '',
@@ -163,24 +177,34 @@ class InvoiceService
             ];
 
             // If payment info was provided, sanitize and add a short observation only
-            if (!empty($orderData['payment']) && is_array($orderData['payment'])) {
+            if (! empty($orderData['payment']) && is_array($orderData['payment'])) {
                 $p = $orderData['payment'];
-                $method = isset($p['method']) ? strtolower(trim((string)$p['method'])) : 'unknown';
-                $allowed = ['card','yape','cash','transfer','paypal','simulated','unknown'];
-                if (!in_array($method, $allowed)) {
+                $method = isset($p['method']) ? strtolower(trim((string) $p['method'])) : 'unknown';
+                $allowed = ['card', 'yape', 'cash', 'transfer', 'paypal', 'simulated', 'unknown'];
+                if (! in_array($method, $allowed)) {
                     // attempt to normalize common values
-                    if (stripos($method, 'card') !== false || stripos($method, 'tarjeta') !== false) $method = 'card';
-                    elseif (stripos($method, 'yape') !== false) $method = 'yape';
-                    elseif (stripos($method, 'paypal') !== false) $method = 'paypal';
-                    elseif (stripos($method, 'cash') !== false || stripos($method, 'efectivo') !== false) $method = 'cash';
-                    else $method = 'unknown';
+                    if (stripos($method, 'card') !== false || stripos($method, 'tarjeta') !== false) {
+                        $method = 'card';
+                    } elseif (stripos($method, 'yape') !== false) {
+                        $method = 'yape';
+                    } elseif (stripos($method, 'paypal') !== false) {
+                        $method = 'paypal';
+                    } elseif (stripos($method, 'cash') !== false || stripos($method, 'efectivo') !== false) {
+                        $method = 'cash';
+                    } else {
+                        $method = 'unknown';
+                    }
                 }
 
-                $txn = isset($p['transaction_id']) ? preg_replace('/[^A-Za-z0-9_\-]/', '', (string)$p['transaction_id']) : null;
-                if ($txn && strlen($txn) > 64) $txn = substr($txn, 0, 64);
+                $txn = isset($p['transaction_id']) ? preg_replace('/[^A-Za-z0-9_\-]/', '', (string) $p['transaction_id']) : null;
+                if ($txn && strlen($txn) > 64) {
+                    $txn = substr($txn, 0, 64);
+                }
 
-                $obs = 'Pago: ' . strtoupper($method);
-                if ($txn) $obs .= ' Txn:' . $txn;
+                $obs = 'Pago: '.strtoupper($method);
+                if ($txn) {
+                    $obs .= ' Txn:'.$txn;
+                }
                 // The external provider may accept an observations field; include a short one to avoid sending raw gateway data
                 $providerPayload['observaciones'] = $obs;
             }
@@ -204,7 +228,7 @@ class InvoiceService
                     'total' => $total_line,
                 ];
                 // Copiar categoria cuando esté disponible para conservarla también en la sección 'provider'
-                if (!empty($it['categoria'])) {
+                if (! empty($it['categoria'])) {
                     $providerItem['categoria'] = $it['categoria'];
                 }
                 $providerPayload['items'][] = $providerItem;
@@ -215,31 +239,38 @@ class InvoiceService
             if (env('USE_GREENTER', true)) {
                 $greenterService = app(\App\Services\GreenterService::class);
                 $greRes = $greenterService->createInvoice(['order' => $order, 'payload' => $providerPayload, 'invoice_number' => $invoiceNumber]);
-                if (!empty($greRes['success'])) {
+                if (! empty($greRes['success'])) {
                     $sunatResponse = $greRes['response'] ?? ['status' => 'success', 'message' => 'generated_local'];
                     // Attach saved_files and file_path so later logic can pick them up
                     $savedFiles = $greRes['saved_files'] ?? [];
-                    if (!empty($greRes['file_path'])) $filePath = $greRes['file_path'];
+                    if (! empty($greRes['file_path'])) {
+                        $filePath = $greRes['file_path'];
+                    }
                     // If Greenter didn't produce a PDF, attempt to generate one via Dompdf here
                     $hasPdf = false;
                     foreach ($savedFiles as $sf) {
-                        if (is_string($sf) && str_ends_with(strtolower($sf), '.pdf')) { $hasPdf = true; break; }
+                        if (is_string($sf) && str_ends_with(strtolower($sf), '.pdf')) {
+                            $hasPdf = true;
+                            break;
+                        }
                     }
                     if (! $hasPdf) {
                         try {
                             $html = view('invoices.sunat', ['order' => $order, 'payload' => $providerPayload, 'invoiceNumber' => $invoiceNumber])->render();
-                            $dompdf = new \Dompdf\Dompdf();
+                            $dompdf = new \Dompdf\Dompdf;
                             $dompdf->loadHtml($html);
                             $dompdf->setPaper('A4', 'portrait');
                             $dompdf->render();
-                            $pdfFilename = $invoiceNumber . '.pdf';
-                            $pdfRel = 'invoices/' . $pdfFilename;
+                            $pdfFilename = $invoiceNumber.'.pdf';
+                            $pdfRel = 'invoices/'.$pdfFilename;
                             Storage::put($pdfRel, $dompdf->output());
                             $savedFiles[] = $pdfRel;
                             $filePath = $pdfRel;
-                            if (is_array($sunatResponse)) $sunatResponse['enlace_del_pdf'] = url('/storage/' . $pdfRel);
+                            if (is_array($sunatResponse)) {
+                                $sunatResponse['enlace_del_pdf'] = url('/storage/'.$pdfRel);
+                            }
                         } catch (\Throwable $e) {
-                            Log::warning('InvoiceService: Dompdf fallback generation failed: ' . $e->getMessage());
+                            Log::warning('InvoiceService: Dompdf fallback generation failed: '.$e->getMessage());
                         }
                     }
                 } else {
@@ -252,8 +283,8 @@ class InvoiceService
 
                 try {
                     $res = Http::withHeaders([
-                        'Authorization' => 'Token token="' . $providerToken . '"',
-                        'Content-Type' => 'application/json'
+                        'Authorization' => 'Token token="'.$providerToken.'"',
+                        'Content-Type' => 'application/json',
                     ])->timeout(20)->post($providerUrl, $providerPayload);
 
                     if ($res->successful()) {
@@ -262,7 +293,7 @@ class InvoiceService
                         $sunatResponse = ['status' => 'error', 'http_code' => $res->status(), 'body' => $res->body()];
                     }
                 } catch (\Throwable $e) {
-                    Log::error('Provider request failed: ' . $e->getMessage());
+                    Log::error('Provider request failed: '.$e->getMessage());
                     $sunatResponse = ['status' => 'error', 'message' => $e->getMessage()];
                 }
             }
@@ -278,25 +309,32 @@ class InvoiceService
                 'updated_at' => now(),
             ]);
 
-            if (!isset($filePath)) $filePath = null;
-            if (!isset($savedFiles)) $savedFiles = [];
+            if (! isset($filePath)) {
+                $filePath = null;
+            }
+            if (! isset($savedFiles)) {
+                $savedFiles = [];
+            }
             // Detectar respuestas del proveedor/SUNAT que indiquen estado 'BAJA' o 'NO HABIDO'
             $responseText = '';
             if (is_array($sunatResponse)) {
-                if (!empty($sunatResponse['body'])) $responseText = (string)$sunatResponse['body'];
-                else $responseText = json_encode($sunatResponse);
+                if (! empty($sunatResponse['body'])) {
+                    $responseText = (string) $sunatResponse['body'];
+                } else {
+                    $responseText = json_encode($sunatResponse);
+                }
             } else {
-                $responseText = (string)$sunatResponse;
+                $responseText = (string) $sunatResponse;
             }
 
             $problematicPatterns = [
                 'BAJA PROV', 'NO HABIDO', 'BAJA', 'NO HALLADO', 'NO EXISTE',
                 'NO PUEDE GENERAR', 'SIN DOCUMENTO A MODIFICAR', 'Tipo de nota de cr', 'Tipo de nota de crédito',
-                'Serie No puedes emitir comprobantes'
+                'Serie No puedes emitir comprobantes',
             ];
             $isProblematic = false;
             foreach ($problematicPatterns as $pat) {
-                if (!empty($responseText) && stripos($responseText, $pat) !== false) {
+                if (! empty($responseText) && stripos($responseText, $pat) !== false) {
                     $isProblematic = true;
                     break;
                 }
@@ -313,7 +351,7 @@ class InvoiceService
                 return [
                     'success' => false,
                     'error' => 'sunat_rejection',
-                    'message' => 'Proveedor/SUNAT rechazó la emisión: ' . $responseText,
+                    'message' => 'Proveedor/SUNAT rechazó la emisión: '.$responseText,
                     'invoice_id' => $id,
                     'provider_response' => $sunatResponse,
                 ];
@@ -323,7 +361,7 @@ class InvoiceService
                 // Common link fields
                 $linkFields = ['enlace', 'enlace_del_pdf', 'enlace_del_zip', 'enlace_del_xml', 'enlace_pdf', 'enlace_zip'];
                 foreach ($linkFields as $lf) {
-                    if (is_array($sunatResponse) && !empty($sunatResponse[$lf])) {
+                    if (is_array($sunatResponse) && ! empty($sunatResponse[$lf])) {
                         $url = $sunatResponse[$lf];
                         try {
                             $resp = Http::timeout(20)->get($url);
@@ -331,21 +369,28 @@ class InvoiceService
                                 // try to infer extension from headers or url
                                 $ext = 'bin';
                                 $contentType = $resp->header('Content-Type');
-                                if (strpos($contentType, 'pdf') !== false) $ext = 'pdf';
-                                elseif (strpos($contentType, 'zip') !== false) $ext = 'zip';
-                                elseif (strpos($contentType, 'xml') !== false) $ext = 'xml';
-                                else {
+                                if (strpos($contentType, 'pdf') !== false) {
+                                    $ext = 'pdf';
+                                } elseif (strpos($contentType, 'zip') !== false) {
+                                    $ext = 'zip';
+                                } elseif (strpos($contentType, 'xml') !== false) {
+                                    $ext = 'xml';
+                                } else {
                                     $uParts = pathinfo(parse_url($url, PHP_URL_PATH));
-                                    if (!empty($uParts['extension'])) $ext = $uParts['extension'];
+                                    if (! empty($uParts['extension'])) {
+                                        $ext = $uParts['extension'];
+                                    }
                                 }
-                                $filename = $invoiceNumber . '-' . $lf . '.' . $ext;
-                                $relPath = 'invoices/' . $filename;
+                                $filename = $invoiceNumber.'-'.$lf.'.'.$ext;
+                                $relPath = 'invoices/'.$filename;
                                 Storage::put($relPath, $resp->body());
                                 $savedFiles[] = $relPath;
-                                if (!$filePath) $filePath = $relPath;
+                                if (! $filePath) {
+                                    $filePath = $relPath;
+                                }
                             }
                         } catch (\Throwable $e) {
-                            Log::warning('Download link failed (' . $lf . '): ' . $e->getMessage());
+                            Log::warning('Download link failed ('.$lf.'): '.$e->getMessage());
                         }
                     }
                 }
@@ -359,7 +404,7 @@ class InvoiceService
                     'xml_base64' => 'xml',
                 ];
                 foreach ($base64Fields as $field => $ext) {
-                    if (is_array($sunatResponse) && !empty($sunatResponse[$field])) {
+                    if (is_array($sunatResponse) && ! empty($sunatResponse[$field])) {
                         try {
                             $b64 = $sunatResponse[$field];
                             // sometimes providers return large base64 strings with data:...prefix
@@ -368,19 +413,21 @@ class InvoiceService
                             }
                             $content = base64_decode($b64);
                             if ($content !== false) {
-                                $filename = $invoiceNumber . '-' . $field . '.' . $ext;
-                                $relPath = 'invoices/' . $filename;
+                                $filename = $invoiceNumber.'-'.$field.'.'.$ext;
+                                $relPath = 'invoices/'.$filename;
                                 Storage::put($relPath, $content);
                                 $savedFiles[] = $relPath;
-                                if (!$filePath) $filePath = $relPath;
+                                if (! $filePath) {
+                                    $filePath = $relPath;
+                                }
                             }
                         } catch (\Throwable $e) {
-                            Log::warning('Failed to save base64 file (' . $field . '): ' . $e->getMessage());
+                            Log::warning('Failed to save base64 file ('.$field.'): '.$e->getMessage());
                         }
                     }
                 }
             } catch (\Throwable $e) {
-                Log::warning('Failed to process invoice files: ' . $e->getMessage());
+                Log::warning('Failed to process invoice files: '.$e->getMessage());
             }
 
             // Update invoice row with file_path and saved_files inside data

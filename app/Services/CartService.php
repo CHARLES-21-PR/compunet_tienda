@@ -10,9 +10,10 @@ class CartService
     {
         // If a selection for checkout exists, prefer it (non-destructive selection)
         $selected = session('cart_selected');
-        if (is_array($selected) && !empty($selected)) {
+        if (is_array($selected) && ! empty($selected)) {
             return $selected;
         }
+
         return session($this->sessionKey, []);
     }
 
@@ -26,6 +27,7 @@ class CartService
             $cart[$key] = array_merge(['id' => $productId, 'quantity' => $quantity], $meta);
         }
         session([$this->sessionKey => $cart]);
+
         return $cart;
     }
 
@@ -37,6 +39,7 @@ class CartService
             $cart[$key]['quantity'] = $quantity;
             session([$this->sessionKey => $cart]);
         }
+
         return $cart;
     }
 
@@ -48,6 +51,7 @@ class CartService
             unset($cart[$key]);
             session([$this->sessionKey => $cart]);
         }
+
         return $cart;
     }
 
@@ -59,6 +63,7 @@ class CartService
     public function count(): int
     {
         $cart = $this->getCart();
+
         return array_sum(array_column($cart, 'quantity'));
     }
 
@@ -70,6 +75,7 @@ class CartService
             $price = $priceResolver($item);
             $total += ($item['quantity'] * $price);
         }
+
         return round($total, 2);
     }
 }

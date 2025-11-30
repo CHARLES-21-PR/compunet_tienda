@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Order;
-use Illuminate\Support\Facades\Storage;
+use Dompdf\Dompdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Dompdf\Dompdf;
+use Illuminate\Support\Facades\Storage;
 
 class ClientOrderController extends Controller
 {
@@ -44,7 +44,7 @@ class ClientOrderController extends Controller
                 }
             }
             // if file not found in saved_files, also check invoice->file_path if basename matches
-            if (!empty($invoice->file_path) && basename($invoice->file_path) === $basenameReq && Storage::exists($invoice->file_path)) {
+            if (! empty($invoice->file_path) && basename($invoice->file_path) === $basenameReq && Storage::exists($invoice->file_path)) {
                 return Storage::download($invoice->file_path, $basenameReq);
             }
         }
@@ -65,13 +65,16 @@ class ClientOrderController extends Controller
         $response = $data['response'] ?? [];
         if (is_array($response) && ! empty($response['pdf_base64'])) {
             $b64 = $response['pdf_base64'];
-            if (strpos($b64, 'base64,') !== false) $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+            if (strpos($b64, 'base64,') !== false) {
+                $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+            }
             $content = base64_decode($b64);
             if ($content !== false) {
-                $name = ($invoice->invoice_number ?? 'comprobante') . '.pdf';
+                $name = ($invoice->invoice_number ?? 'comprobante').'.pdf';
+
                 return response($content, 200, [
                     'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => 'attachment; filename="' . $name . '"'
+                    'Content-Disposition' => 'attachment; filename="'.$name.'"',
                 ]);
             }
         }
@@ -87,7 +90,7 @@ class ClientOrderController extends Controller
                         $path = $parsed['path'] ?? '';
                         if (strpos($path, '/storage/invoices/') !== false) {
                             $basename = basename($path);
-                            $rel = 'invoices/' . $basename;
+                            $rel = 'invoices/'.$basename;
                             if (Storage::exists($rel)) {
                                 return Storage::download($rel, $basename);
                             }
@@ -101,11 +104,14 @@ class ClientOrderController extends Controller
                         if ($resp->successful()) {
                             $contentType = $resp->header('Content-Type') ?? 'application/octet-stream';
                             $ext = 'bin';
-                            if (strpos($contentType, 'pdf') !== false) $ext = 'pdf';
-                            $name = ($invoice->invoice_number ?? 'comprobante') . '.' . $ext;
+                            if (strpos($contentType, 'pdf') !== false) {
+                                $ext = 'pdf';
+                            }
+                            $name = ($invoice->invoice_number ?? 'comprobante').'.'.$ext;
+
                             return response($resp->body(), 200, [
                                 'Content-Type' => $contentType,
-                                'Content-Disposition' => 'attachment; filename="' . $name . '"'
+                                'Content-Disposition' => 'attachment; filename="'.$name.'"',
                             ]);
                         }
                     } catch (\Throwable $e) {
@@ -124,13 +130,16 @@ class ClientOrderController extends Controller
 
         if (is_array($response) && ! empty($response['xml_base64'])) {
             $b64 = $response['xml_base64'];
-            if (strpos($b64, 'base64,') !== false) $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+            if (strpos($b64, 'base64,') !== false) {
+                $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+            }
             $content = base64_decode($b64);
             if ($content !== false) {
-                $name = ($invoice->invoice_number ?? 'comprobante') . '.xml';
+                $name = ($invoice->invoice_number ?? 'comprobante').'.xml';
+
                 return response($content, 200, [
                     'Content-Type' => 'application/xml',
-                    'Content-Disposition' => 'attachment; filename="' . $name . '"'
+                    'Content-Disposition' => 'attachment; filename="'.$name.'"',
                 ]);
             }
         }
@@ -139,9 +148,9 @@ class ClientOrderController extends Controller
         try {
             $payload = $data['payload'] ?? [];
             $invoiceNumber = $invoice->invoice_number ?? ($invoice->id ?? 'comprobante');
-            $html = view('invoices.pdf', compact('order','payload','invoiceNumber'))->render();
+            $html = view('invoices.pdf', compact('order', 'payload', 'invoiceNumber'))->render();
 
-            $dompdf = new Dompdf();
+            $dompdf = new Dompdf;
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->render();
@@ -149,21 +158,22 @@ class ClientOrderController extends Controller
 
             // Opcional: guardar en storage para reutilizar
             $safeName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $invoiceNumber);
-            $pdfRel = 'invoices/' . $safeName . '.pdf';
+            $pdfRel = 'invoices/'.$safeName.'.pdf';
             try {
                 Storage::put($pdfRel, $output);
             } catch (\Throwable $e) {
-                Log::warning('ClientOrderController: no se pudo guardar PDF regenerado: ' . $e->getMessage());
+                Log::warning('ClientOrderController: no se pudo guardar PDF regenerado: '.$e->getMessage());
             }
 
             return response($output, 200, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="' . basename($pdfRel) . '"'
+                'Content-Disposition' => 'attachment; filename="'.basename($pdfRel).'"',
             ]);
         } catch (\Throwable $e) {
-            Log::error('ClientOrderController: regeneracion PDF fallida: ' . $e->getMessage());
+            Log::error('ClientOrderController: regeneracion PDF fallida: '.$e->getMessage());
+
             return back()->with('error', 'No fue posible regenerar el comprobante.');
         }
-        
+
     }
 }

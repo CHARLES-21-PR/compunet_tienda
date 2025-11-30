@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Order;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,7 +11,7 @@ class OrderSettingsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with(['invoice','payments','user'])->orderBy('created_at', 'desc');
+        $query = Order::with(['invoice', 'payments', 'user'])->orderBy('created_at', 'desc');
 
         // filter by status if provided. Accept Spanish and English keys (map aliases)
         $status = $request->query('status');
@@ -19,10 +19,12 @@ class OrderSettingsController extends Controller
             $s = strtolower($status);
             $aliases = [
                 'paid' => 'pagado', 'delivered' => 'entregado', 'cancelled' => 'cancelado', 'failed' => 'fallido', 'pending' => 'pendiente',
-                'pagado' => 'paid', 'entregado' => 'delivered', 'cancelado' => 'cancelled', 'fallido' => 'failed', 'pendiente' => 'pending'
+                'pagado' => 'paid', 'entregado' => 'delivered', 'cancelado' => 'cancelled', 'fallido' => 'failed', 'pendiente' => 'pending',
             ];
             $candidates = [$s];
-            if (isset($aliases[$s])) $candidates[] = $aliases[$s];
+            if (isset($aliases[$s])) {
+                $candidates[] = $aliases[$s];
+            }
             // query DB for any of the candidate status values
             $query->whereIn('status', $candidates);
         }
@@ -31,14 +33,14 @@ class OrderSettingsController extends Controller
         $paymentMethod = $request->query('payment_method');
         if ($paymentMethod) {
             if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'payment_method')) {
-                $query->where(function($q) use ($paymentMethod) {
+                $query->where(function ($q) use ($paymentMethod) {
                     $q->where('payment_method', $paymentMethod)
-                      ->orWhereHas('payments', function($qp) use ($paymentMethod) {
-                          $qp->where('method', $paymentMethod);
-                      });
+                        ->orWhereHas('payments', function ($qp) use ($paymentMethod) {
+                            $qp->where('method', $paymentMethod);
+                        });
                 });
             } else {
-                $query->whereHas('payments', function($qp) use ($paymentMethod) {
+                $query->whereHas('payments', function ($qp) use ($paymentMethod) {
                     $qp->where('method', $paymentMethod);
                 });
             }
@@ -50,7 +52,9 @@ class OrderSettingsController extends Controller
         try {
             $statusRows = \App\Models\OrderStatus::orderBy('id')->get();
             if ($statusRows->isNotEmpty()) {
-                foreach ($statusRows as $r) $availableStatuses[$r->key] = $r->label;
+                foreach ($statusRows as $r) {
+                    $availableStatuses[$r->key] = $r->label;
+                }
             }
         } catch (\Throwable $e) {
             // fallback to config
@@ -58,7 +62,9 @@ class OrderSettingsController extends Controller
         if (empty($availableStatuses)) {
             // fallback default statuses (usamos claves en español)
             $defaults = ['pagado' => 'Pagado', 'entregado' => 'Entregado', 'cancelado' => 'Cancelado', 'fallido' => 'Fallido', 'pendiente' => 'Pendiente'];
-            foreach ($defaults as $k => $v) $availableStatuses[$k] = $v;
+            foreach ($defaults as $k => $v) {
+                $availableStatuses[$k] = $v;
+            }
         }
         // gather available payment methods for the filter UI
         $availablePaymentMethods = [];
@@ -74,7 +80,7 @@ class OrderSettingsController extends Controller
         // fallback: if orders table stores method on the model
         if (empty($availablePaymentMethods)) {
             try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('orders') && \Illuminate\Support\Facades\Schema::hasColumn('orders','payment_method')) {
+                if (\Illuminate\Support\Facades\Schema::hasTable('orders') && \Illuminate\Support\Facades\Schema::hasColumn('orders', 'payment_method')) {
                     $availablePaymentMethods = \App\Models\Order::select('payment_method')->distinct()->whereNotNull('payment_method')->orderBy('payment_method')->pluck('payment_method')->toArray();
                 }
             } catch (\Throwable $e) {
@@ -82,19 +88,22 @@ class OrderSettingsController extends Controller
             }
         }
 
-        return view('settings.orders.index', compact('orders','availableStatuses','availablePaymentMethods'));
+        return view('settings.orders.index', compact('orders', 'availableStatuses', 'availablePaymentMethods'));
     }
 
     public function show(\Illuminate\Http\Request $request, $id)
     {
-        $order = Order::with(['items','payments','user'])->find($id);
-        if (! $order) return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
-        $invoice = $order->invoice()->orderBy('id','desc')->first();
+        $order = Order::with(['items', 'payments', 'user'])->find($id);
+        if (! $order) {
+            return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+        }
+        $invoice = $order->invoice()->orderBy('id', 'desc')->first();
         // If the request is AJAX, return only the partial fragment (no layout) for modal display
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-            return view('settings.orders.partials.show', compact('order','invoice'));
+            return view('settings.orders.partials.show', compact('order', 'invoice'));
         }
-        return view('settings.orders.show', compact('order','invoice'));
+
+        return view('settings.orders.show', compact('order', 'invoice'));
     }
 
     /**
@@ -114,10 +123,10 @@ class OrderSettingsController extends Controller
             $allowed = \App\Models\OrderStatus::pluck('key')->toArray();
         } catch (\Throwable $e) {
             // fallback to spanish keys
-            $allowed = ['pagado','entregado','cancelado','fallido','pendiente'];
+            $allowed = ['pagado', 'entregado', 'cancelado', 'fallido', 'pendiente'];
         }
         $data = $request->validate([
-            'status' => ['required','string','in:'.implode(',', $allowed)]
+            'status' => ['required', 'string', 'in:'.implode(',', $allowed)],
         ]);
 
         $order->status = $data['status'];
@@ -138,6 +147,7 @@ class OrderSettingsController extends Controller
 
         try {
             $order->delete();
+
             return redirect()->route('settings.orders.index')->with('success', 'Pedido eliminado correctamente');
         } catch (\Exception $e) {
             return redirect()->route('settings.orders.index')->with('error', 'No se pudo eliminar el pedido');
@@ -167,13 +177,15 @@ class OrderSettingsController extends Controller
                 if ($request->input('download')) {
                     return redirect()->route('settings.orders.export_xml', $order->id);
                 }
-                return redirect()->route('settings.orders.show', $order->id)->with('success', 'Factura/Boleta generada: ' . ($res['invoice_number'] ?? 'OK'));
+
+                return redirect()->route('settings.orders.show', $order->id)->with('success', 'Factura/Boleta generada: '.($res['invoice_number'] ?? 'OK'));
             }
 
             $err = $res['error'] ?? ($res['provider_response']['body'] ?? json_encode($res));
-            return redirect()->route('settings.orders.show', $order->id)->with('error', 'No se pudo generar la factura: ' . substr($err, 0, 300));
+
+            return redirect()->route('settings.orders.show', $order->id)->with('error', 'No se pudo generar la factura: '.substr($err, 0, 300));
         } catch (\Throwable $e) {
-            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Error al generar factura: ' . $e->getMessage());
+            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Error al generar factura: '.$e->getMessage());
         }
     }
 
@@ -199,6 +211,7 @@ class OrderSettingsController extends Controller
                     return Storage::download($p, $basename);
                 }
             }
+
             return back()->with('error', 'Archivo no encontrado para esta factura');
         }
 
@@ -223,7 +236,7 @@ class OrderSettingsController extends Controller
         if (! $invoice) {
             // Fallback: buscar en la tabla `invoices` una fila cuyo JSON `data` indique el order_id (por compatibilidad si order_id no fue guardado)
             try {
-                $maybe = \Illuminate\Support\Facades\DB::table('invoices')->where('data', 'like', '%"order_id":' . intval($orderId) . '%')->orderBy('id', 'desc')->first();
+                $maybe = \Illuminate\Support\Facades\DB::table('invoices')->where('data', 'like', '%"order_id":'.intval($orderId).'%')->orderBy('id', 'desc')->first();
                 if ($maybe) {
                     $invoice = \App\Models\Invoice::find($maybe->id);
                 }
@@ -249,22 +262,25 @@ class OrderSettingsController extends Controller
         }
 
         // 2) Revisar file_path si apunta a PDF
-        if (!empty($invoice->file_path) && str_ends_with(strtolower($invoice->file_path), '.pdf') && Storage::exists($invoice->file_path)) {
+        if (! empty($invoice->file_path) && str_ends_with(strtolower($invoice->file_path), '.pdf') && Storage::exists($invoice->file_path)) {
             return Storage::download($invoice->file_path, basename($invoice->file_path));
         }
 
         // 3) Revisar en response campos base64 o enlaces para PDF
         $response = $data['response'] ?? [];
         if (is_array($response)) {
-            if (!empty($response['pdf_base64'])) {
+            if (! empty($response['pdf_base64'])) {
                 $b64 = $response['pdf_base64'];
-                if (strpos($b64, 'base64,') !== false) $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+                if (strpos($b64, 'base64,') !== false) {
+                    $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+                }
                 $content = base64_decode($b64);
                 if ($content !== false) {
-                    $name = ($invoice->invoice_number ?? 'comprobante') . '.pdf';
+                    $name = ($invoice->invoice_number ?? 'comprobante').'.pdf';
+
                     return response($content, 200, [
                         'Content-Type' => 'application/pdf',
-                        'Content-Disposition' => 'attachment; filename="' . $name . '"'
+                        'Content-Disposition' => 'attachment; filename="'.$name.'"',
                     ]);
                 }
             }
@@ -272,7 +288,7 @@ class OrderSettingsController extends Controller
             // enlaces (enlace_del_pdf, enlace_pdf, enlace)
             $linkFields = ['enlace_del_pdf', 'enlace_pdf', 'enlace'];
             foreach ($linkFields as $lf) {
-                if (!empty($response[$lf])) {
+                if (! empty($response[$lf])) {
                     $url = $response[$lf];
                     // If the link points to local storage (localhost, 127.0.0.1 or /storage/...), avoid HTTP and serve directly
                     try {
@@ -280,7 +296,7 @@ class OrderSettingsController extends Controller
                         $path = $parsed['path'] ?? '';
                         if (strpos($path, '/storage/invoices/') !== false) {
                             $basename = basename($path);
-                            $rel = 'invoices/' . $basename;
+                            $rel = 'invoices/'.$basename;
                             if (Storage::exists($rel)) {
                                 return Storage::download($rel, $basename);
                             }
@@ -294,11 +310,14 @@ class OrderSettingsController extends Controller
                         if ($resp->successful()) {
                             $contentType = $resp->header('Content-Type') ?? 'application/octet-stream';
                             $ext = 'bin';
-                            if (strpos($contentType, 'pdf') !== false) $ext = 'pdf';
-                            $name = ($invoice->invoice_number ?? 'comprobante') . '.' . $ext;
+                            if (strpos($contentType, 'pdf') !== false) {
+                                $ext = 'pdf';
+                            }
+                            $name = ($invoice->invoice_number ?? 'comprobante').'.'.$ext;
+
                             return response($resp->body(), 200, [
                                 'Content-Type' => $contentType,
-                                'Content-Disposition' => 'attachment; filename="' . $name . '"'
+                                'Content-Disposition' => 'attachment; filename="'.$name.'"',
                             ]);
                         }
                     } catch (\Throwable $e) {
@@ -319,35 +338,41 @@ class OrderSettingsController extends Controller
 
         // Buscar en response campos base64 de XML/ZIP
         if (is_array($response)) {
-            if (!empty($response['xml_base64'])) {
+            if (! empty($response['xml_base64'])) {
                 $b64 = $response['xml_base64'];
-                if (strpos($b64, 'base64,') !== false) $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+                if (strpos($b64, 'base64,') !== false) {
+                    $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+                }
                 $content = base64_decode($b64);
                 if ($content !== false) {
-                    $name = ($invoice->invoice_number ?? 'comprobante') . '.xml';
+                    $name = ($invoice->invoice_number ?? 'comprobante').'.xml';
+
                     return response($content, 200, [
                         'Content-Type' => 'application/xml',
-                        'Content-Disposition' => 'attachment; filename="' . $name . '"'
+                        'Content-Disposition' => 'attachment; filename="'.$name.'"',
                     ]);
                 }
             }
 
-            if (!empty($response['xml_zip_base64'])) {
+            if (! empty($response['xml_zip_base64'])) {
                 $b64 = $response['xml_zip_base64'];
-                if (strpos($b64, 'base64,') !== false) $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+                if (strpos($b64, 'base64,') !== false) {
+                    $b64 = substr($b64, strpos($b64, 'base64,') + 7);
+                }
                 $content = base64_decode($b64);
                 if ($content !== false) {
-                    $name = ($invoice->invoice_number ?? 'comprobante') . '.zip';
+                    $name = ($invoice->invoice_number ?? 'comprobante').'.zip';
+
                     return response($content, 200, [
                         'Content-Type' => 'application/zip',
-                        'Content-Disposition' => 'attachment; filename="' . $name . '"'
+                        'Content-Disposition' => 'attachment; filename="'.$name.'"',
                     ]);
                 }
             }
         }
 
         // Si el file_path apunta a zip, intentar servir el zip si existe
-        if (!empty($invoice->file_path) && str_ends_with(strtolower($invoice->file_path), '.zip') && Storage::exists($invoice->file_path)) {
+        if (! empty($invoice->file_path) && str_ends_with(strtolower($invoice->file_path), '.zip') && Storage::exists($invoice->file_path)) {
             return Storage::download($invoice->file_path, basename($invoice->file_path));
         }
 
@@ -377,13 +402,17 @@ class OrderSettingsController extends Controller
             if (is_array($providerResp) && (isset($providerResp['status']) && $providerResp['status'] === 'error' || (isset($providerResp['http_code']) && $providerResp['http_code'] >= 400))) {
                 // try to extract a readable message
                 $msg = 'Error del proveedor';
-                if (!empty($providerResp['body'])) {
+                if (! empty($providerResp['body'])) {
                     $body = $providerResp['body'];
                     $decoded = json_decode($body, true);
-                    if (is_array($decoded) && !empty($decoded['errors'])) $msg = is_array($decoded['errors']) ? implode('; ', (array)$decoded['errors']) : $decoded['errors'];
-                    else $msg = $body;
+                    if (is_array($decoded) && ! empty($decoded['errors'])) {
+                        $msg = is_array($decoded['errors']) ? implode('; ', (array) $decoded['errors']) : $decoded['errors'];
+                    } else {
+                        $msg = $body;
+                    }
                 }
-                return response()->json(['success' => false, 'message' => substr($msg,0,300)], 400);
+
+                return response()->json(['success' => false, 'message' => substr($msg, 0, 300)], 400);
             }
 
             if (! empty($res['success'])) {
@@ -391,7 +420,8 @@ class OrderSettingsController extends Controller
             }
 
             $err = $res['error'] ?? json_encode($res);
-            return response()->json(['success' => false, 'message' => substr($err,0,300)] , 400);
+
+            return response()->json(['success' => false, 'message' => substr($err, 0, 300)], 400);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -415,10 +445,11 @@ class OrderSettingsController extends Controller
         try {
             $invoiceService = app(\App\Services\InvoiceService::class);
             $res = $invoiceService->createInvoice(['order_id' => $order->id]);
+
             // After creation, redirect to export endpoint which will try to serve PDF
             return redirect()->route('settings.orders.export_xml', $order->id);
         } catch (\Throwable $e) {
-            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Error al generar factura: ' . $e->getMessage());
+            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Error al generar factura: '.$e->getMessage());
         }
     }
 }

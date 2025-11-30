@@ -23,7 +23,9 @@ class OrderStatusesSeeder extends Seeder
 
         foreach ($defaults as $d) {
             $exists = DB::table('order_statuses')->where('key', $d['key'])->first();
-            if (!$exists) DB::table('order_statuses')->insert(array_merge($d, ['created_at' => now(), 'updated_at' => now()]));
+            if (! $exists) {
+                DB::table('order_statuses')->insert(array_merge($d, ['created_at' => now(), 'updated_at' => now()]));
+            }
         }
     }
 }

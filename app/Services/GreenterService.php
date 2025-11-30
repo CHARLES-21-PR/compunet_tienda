@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use mikehaertl\wkhtmlto\Pdf;
 
 class GreenterService
@@ -16,7 +16,7 @@ class GreenterService
     public function createInvoice(array $data): array
     {
         // Esperamos recibir 'order' (modelo) y 'invoice_number' o 'payload'
-        $invoiceNumber = $data['invoice_number'] ?? ($data['payload']['invoice_number'] ?? ('INV-' . time()));
+        $invoiceNumber = $data['invoice_number'] ?? ($data['payload']['invoice_number'] ?? ('INV-'.time()));
         $order = $data['order'] ?? null;
         $payload = $data['payload'] ?? [];
 
@@ -40,7 +40,7 @@ class GreenterService
 
             // Ensure invoices directory exists
             $invoicesDir = storage_path('app/invoices');
-            if (!file_exists($invoicesDir)) {
+            if (! file_exists($invoicesDir)) {
                 @mkdir($invoicesDir, 0755, true);
             }
 
@@ -48,19 +48,19 @@ class GreenterService
             if ($preferred === 'dompdf') {
                 // Try Dompdf first
                 try {
-                    $dompdf = new \Dompdf\Dompdf();
+                    $dompdf = new \Dompdf\Dompdf;
                     $dompdf->loadHtml($html);
                     $dompdf->setPaper('A4', 'portrait');
                     $dompdf->render();
-                    $pdfFilename = $invoiceNumber . '.pdf';
-                    $pdfRel = 'invoices/' . $pdfFilename;
+                    $pdfFilename = $invoiceNumber.'.pdf';
+                    $pdfRel = 'invoices/'.$pdfFilename;
                     $content = $dompdf->output();
                     Storage::put($pdfRel, $content);
                     $savedFiles[] = $pdfRel;
                     $filePath = $pdfRel;
-                    $response['enlace_del_pdf'] = url('/storage/' . $pdfRel);
+                    $response['enlace_del_pdf'] = url('/storage/'.$pdfRel);
                 } catch (\Throwable $e) {
-                    Log::warning('GreenterService: Dompdf generation failed: ' . $e->getMessage());
+                    Log::warning('GreenterService: Dompdf generation failed: '.$e->getMessage());
                 }
 
                 // If Dompdf didn't produce, fallback to wkhtmltopdf
@@ -68,18 +68,18 @@ class GreenterService
                     try {
                         $pdf = new Pdf(['no-outline' => true]);
                         $pdf->addPage($html);
-                        $pdfFilename = $invoiceNumber . '.pdf';
-                        $pdfRel = 'invoices/' . $pdfFilename;
-                        $fullPath = $invoicesDir . DIRECTORY_SEPARATOR . $pdfFilename;
+                        $pdfFilename = $invoiceNumber.'.pdf';
+                        $pdfRel = 'invoices/'.$pdfFilename;
+                        $fullPath = $invoicesDir.DIRECTORY_SEPARATOR.$pdfFilename;
                         if ($pdf->saveAs($fullPath)) {
                             $savedFiles[] = $pdfRel;
                             $filePath = $pdfRel;
-                            $response['enlace_del_pdf'] = url('/storage/' . $pdfRel);
+                            $response['enlace_del_pdf'] = url('/storage/'.$pdfRel);
                         } else {
-                            Log::warning('GreenterService: wkhtmltopdf failed: ' . $pdf->getError());
+                            Log::warning('GreenterService: wkhtmltopdf failed: '.$pdf->getError());
                         }
                     } catch (\Throwable $e) {
-                        Log::info('GreenterService: wkhtmltopdf not available or failed: ' . $e->getMessage());
+                        Log::info('GreenterService: wkhtmltopdf not available or failed: '.$e->getMessage());
                     }
                 }
             } else {
@@ -87,42 +87,42 @@ class GreenterService
                 try {
                     $pdf = new Pdf(['no-outline' => true]);
                     $pdf->addPage($html);
-                    $pdfFilename = $invoiceNumber . '.pdf';
-                    $pdfRel = 'invoices/' . $pdfFilename;
-                    $fullPath = $invoicesDir . DIRECTORY_SEPARATOR . $pdfFilename;
+                    $pdfFilename = $invoiceNumber.'.pdf';
+                    $pdfRel = 'invoices/'.$pdfFilename;
+                    $fullPath = $invoicesDir.DIRECTORY_SEPARATOR.$pdfFilename;
                     if ($pdf->saveAs($fullPath)) {
                         $savedFiles[] = $pdfRel;
                         $filePath = $pdfRel;
-                        $response['enlace_del_pdf'] = url('/storage/' . $pdfRel);
+                        $response['enlace_del_pdf'] = url('/storage/'.$pdfRel);
                     } else {
-                        Log::warning('GreenterService: wkhtmltopdf failed: ' . $pdf->getError());
+                        Log::warning('GreenterService: wkhtmltopdf failed: '.$pdf->getError());
                     }
                 } catch (\Throwable $e) {
-                    Log::info('GreenterService: wkhtmltopdf not available or failed, falling back to Dompdf: ' . $e->getMessage());
+                    Log::info('GreenterService: wkhtmltopdf not available or failed, falling back to Dompdf: '.$e->getMessage());
                 }
 
                 // If wkhtmltopdf didn't produce a PDF, try Dompdf (pure PHP)
                 if (empty($filePath)) {
                     try {
-                        $dompdf = new \Dompdf\Dompdf();
+                        $dompdf = new \Dompdf\Dompdf;
                         $dompdf->loadHtml($html);
                         $dompdf->setPaper('A4', 'portrait');
                         $dompdf->render();
-                        $pdfFilename = $invoiceNumber . '.pdf';
-                        $pdfRel = 'invoices/' . $pdfFilename;
+                        $pdfFilename = $invoiceNumber.'.pdf';
+                        $pdfRel = 'invoices/'.$pdfFilename;
                         $content = $dompdf->output();
                         // Save via Storage to respect filesystem
                         Storage::put($pdfRel, $content);
                         $savedFiles[] = $pdfRel;
                         $filePath = $pdfRel;
-                        $response['enlace_del_pdf'] = url('/storage/' . $pdfRel);
+                        $response['enlace_del_pdf'] = url('/storage/'.$pdfRel);
                     } catch (\Throwable $e) {
-                        Log::warning('GreenterService: Dompdf generation failed: ' . $e->getMessage());
+                        Log::warning('GreenterService: Dompdf generation failed: '.$e->getMessage());
                     }
                 }
             }
         } catch (\Throwable $e) {
-            Log::warning('GreenterService: PDF generation failed: ' . $e->getMessage());
+            Log::warning('GreenterService: PDF generation failed: '.$e->getMessage());
         }
 
         return [
@@ -143,7 +143,7 @@ class GreenterService
         $items = $payload['items'] ?? [];
         if (empty($items) && $order) {
             foreach ($order->items as $it) {
-                $itemsXml .= "<item><description>" . htmlspecialchars($it->name) . "</description><quantity>{$it->quantity}</quantity><price>{$it->price}</price></item>";
+                $itemsXml .= '<item><description>'.htmlspecialchars($it->name)."</description><quantity>{$it->quantity}</quantity><price>{$it->price}</price></item>";
             }
         } else {
             foreach ($items as $it) {
@@ -159,10 +159,10 @@ class GreenterService
         $xml .= "  <number>{$invoiceNumber}</number>\n";
         $xml .= "  <date>{$date}</date>\n";
         $xml .= "  <customer>\n";
-        $xml .= "    <name>" . htmlspecialchars($customerName) . "</name>\n";
-        $xml .= "    <doc>" . htmlspecialchars($customerDoc) . "</doc>\n";
+        $xml .= '    <name>'.htmlspecialchars($customerName)."</name>\n";
+        $xml .= '    <doc>'.htmlspecialchars($customerDoc)."</doc>\n";
         $xml .= "  </customer>\n";
-        $xml .= "  <items>\n" . $itemsXml . "\n  </items>\n";
+        $xml .= "  <items>\n".$itemsXml."\n  </items>\n";
         $xml .= "</invoice>\n";
 
         return $xml;

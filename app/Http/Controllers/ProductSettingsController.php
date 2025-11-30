@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -17,14 +17,14 @@ class ProductSettingsController extends Controller
 
         $query = Product::with('category');
 
-        if (!empty($q)) {
-            $query->where(function($qb) use ($q) {
+        if (! empty($q)) {
+            $query->where(function ($qb) use ($q) {
                 $qb->where('name', 'like', "%{$q}%")
-                   ->orWhere('description', 'like', "%{$q}%");
+                    ->orWhere('description', 'like', "%{$q}%");
             });
         }
 
-        if (!empty($categoryId)) {
+        if (! empty($categoryId)) {
             $query->where('category_id', $categoryId);
         }
 
@@ -35,9 +35,11 @@ class ProductSettingsController extends Controller
 
         return view('admin.products.index', compact('products', 'categories', 'q', 'categoryId'));
     }
+
     public function create()
     {
         $categories = Category::orderBy('name')->get();
+
         return view('admin.products.create', compact('categories'));
     }
 
@@ -54,7 +56,6 @@ class ProductSettingsController extends Controller
             'status' => 'nullable|in:activo,inactivo',
         ]);
 
-        
         $imagePath = null;
         if ($request->hasFile('image')) {
             $file = $request->file('image');
@@ -62,7 +63,7 @@ class ProductSettingsController extends Controller
                 try {
                     $imagePath = $file->store('products', 'public');
                 } catch (\Throwable $e) {
-                    
+
                     Log::error('Error al almacenar imagen de producto', ['error' => $e->getMessage()]);
                     $imagePath = null;
                 }
@@ -81,8 +82,10 @@ class ProductSettingsController extends Controller
             'image' => $imagePath,
             'status' => $request->input('status', 'activo'),
         ]);
+
         return redirect()->route('settings.products.index')->with('success', 'Producto creado exitosamente.');
     }
+
     public function edit(Product $product)
     {
         $categories = Category::orderBy('name')->get();
@@ -90,8 +93,10 @@ class ProductSettingsController extends Controller
         if (request()->ajax() || request()->wantsJson()) {
             return view('admin.products.partials.edit-form', compact('product', 'categories'));
         }
+
         return view('admin.products.edit', compact('product', 'categories'));
     }
+
     public function update(Request $request, Product $product)
     {
         $request->validate([
@@ -115,7 +120,6 @@ class ProductSettingsController extends Controller
             'status' => $request->input('status') ?? $product->status,
         ];
 
-       
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('products', 'public');
         }
@@ -124,9 +128,11 @@ class ProductSettingsController extends Controller
 
         return redirect()->route('admin.products.index')->with('success', 'Producto actualizado exitosamente.');
     }
+
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->route('admin.products.index')->with('success', 'Producto eliminado exitosamente.');
     }
 }

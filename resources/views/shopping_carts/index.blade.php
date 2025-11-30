@@ -1,6 +1,6 @@
 <x-app-layout>
     @section('content')
-        <div class="container my-4">
+        <div class="container py-4">
             <div class="row">
                 <div class="col-12">
                     <h1 class="h3 mb-2">Carrito de Compras</h1>

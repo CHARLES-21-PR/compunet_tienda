@@ -8,9 +8,9 @@ class OrderStatus extends Model
 {
     protected $table = 'order_statuses';
 
-    protected $fillable = ['key','label','meta'];
+    protected $fillable = ['key', 'label', 'meta'];
 
     protected $casts = [
-        'meta' => 'array'
+        'meta' => 'array',
     ];
 }

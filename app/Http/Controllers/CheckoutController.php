@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Facades\CheckoutFacade as Checkout;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,14 +16,17 @@ class CheckoutController extends Controller
         Log::debug('checkout.index session debug', ['cart' => session('cart'), 'cart_selected' => session('cart_selected')]);
 
         // ejemplo: preparar orden usando el resolver de precios (closure)
-        $result = Checkout::prepareOrder(function($item){
+        $result = Checkout::prepareOrder(function ($item) {
             // si $item tiene price en session, use eso, sino buscar producto
-            if (isset($item['price'])) return $item['price'];
+            if (isset($item['price'])) {
+                return $item['price'];
+            }
+
             // fallback: buscar Product si es necesario
             return 0;
         });
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return redirect()->route('shopping_carts.index')->with('error', $result['message']);
         }
 
@@ -57,24 +60,32 @@ class CheckoutController extends Controller
             'card_holder' => 'nullable|string',
             'expiry' => 'nullable|string',
             'cvc' => 'nullable|string',
-            'phone' => 'nullable|string'
+            'phone' => 'nullable|string',
         ]);
 
         // Require at least dni or ruc for fiscal documents unless payment method is Yape (manual upload)
         $paymentMethod = $payload['payment_method'] ?? '';
         if ($paymentMethod !== 'yape') {
             if (empty($payload['dni']) && empty($payload['ruc'])) {
-                if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Debe proporcionar DNI (para boleta) o RUC (para factura) antes de pagar.'], 422);
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Debe proporcionar DNI (para boleta) o RUC (para factura) antes de pagar.'], 422);
+                }
+
                 return back()->with('error', 'Debe proporcionar DNI (para boleta) o RUC (para factura) antes de pagar.');
             }
         }
         // preparar orden desde carrito
         $cartService = app(\App\Services\CartService::class);
         $cart = $cartService->getCart();
-        $priceResolver = function($item){ return isset($item['price']) ? $item['price'] : 0; };
+        $priceResolver = function ($item) {
+            return isset($item['price']) ? $item['price'] : 0;
+        };
         $prepare = Checkout::prepareOrder($priceResolver);
-        if (!$prepare['success']) {
-            if ($request->wantsJson()) return response()->json(array_merge(['success' => false, 'message' => $prepare['message']], ['details' => $prepare]), 422);
+        if (! $prepare['success']) {
+            if ($request->wantsJson()) {
+                return response()->json(array_merge(['success' => false, 'message' => $prepare['message']], ['details' => $prepare]), 422);
+            }
+
             // attach debug info to session so admin/dev can inspect
             return back()->with('error', $prepare['message'])->with('prepare_details', $prepare);
         }
@@ -85,7 +96,10 @@ class CheckoutController extends Controller
 
         // Restricción: Yape sólo permitido para pedidos hasta S/.500 (<= 500). Si es mayor, rechazar.
         if (($paymentMethod === 'yape') && ($totalWithIgv > 500)) {
-            if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Yape sólo está disponible para pedidos hasta S/.500.'], 422);
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Yape sólo está disponible para pedidos hasta S/.500.'], 422);
+            }
+
             return back()->with('error', 'Yape sólo está disponible para pedidos hasta S/.500.');
         }
 
@@ -131,7 +145,10 @@ class CheckoutController extends Controller
         if ($paymentMethod === 'yape') {
             if (! $request->hasFile('yape_receipt')) {
                 // require receipt
-                if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Debe subir el comprobante para Yape.'], 422);
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Debe subir el comprobante para Yape.'], 422);
+                }
+
                 return back()->with('error', 'Debe subir el comprobante para Yape.');
             }
             $file = $request->file('yape_receipt');
@@ -158,7 +175,10 @@ class CheckoutController extends Controller
             if (empty($charge['success'])) {
                 // marcar orden como fallido
                 DB::table('orders')->where('id', $orderId)->update(['status' => 'fallido']);
-                if ($request->wantsJson()) return response()->json(['success' => false, 'message' => 'Pago rechazado'], 402);
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Pago rechazado'], 402);
+                }
+
                 return back()->with('error', 'Pago rechazado');
             }
 
@@ -178,8 +198,11 @@ class CheckoutController extends Controller
                 // marcar orden como fallido si no se pudo decrementar stock
                 DB::table('orders')->where('id', $orderId)->update(['status' => 'fallido']);
                 $names = implode(', ', $stockErrors);
-                $msg = 'No fue posible reservar stock para: ' . $names . '. Pedido marcado como fallido.';
-                if ($request->wantsJson()) return response()->json(['success' => false, 'message' => $msg], 409);
+                $msg = 'No fue posible reservar stock para: '.$names.'. Pedido marcado como fallido.';
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 409);
+                }
+
                 return back()->with('error', $msg);
             }
 
@@ -203,7 +226,7 @@ class CheckoutController extends Controller
         // Remove only the purchased items from the persistent cart (do not clear everything)
         try {
             $persistent = session('cart', []);
-            if (is_array($persistent) && !empty($persistent)) {
+            if (is_array($persistent) && ! empty($persistent)) {
                 foreach ($prepare['items'] as $it) {
                     $pid = null;
                     if (is_array($it) && isset($it['product'])) {
@@ -225,7 +248,7 @@ class CheckoutController extends Controller
             }
         } catch (\Throwable $e) {
             // fallback: if anything fails, do not clear the cart to avoid data loss
-            Log::error('Error removing purchased items from cart: ' . $e->getMessage());
+            Log::error('Error removing purchased items from cart: '.$e->getMessage());
         }
 
         // Also clear any temporary selected items for checkout
@@ -238,7 +261,7 @@ class CheckoutController extends Controller
             return response()->json([
                 'success' => true,
                 'order_id' => $orderId,
-                'redirect' => $redirectUrl . '?just_paid=1'
+                'redirect' => $redirectUrl.'?just_paid=1',
             ]);
         }
 

@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Support\Facades\Schema;
 
 class CategoryController extends Controller
 {
     public function index()
     {
         $categories = Category::all();
+
         return view('categories.index', compact('categories'));
     }
 
-     public function show($category)
+    public function show($category)
     {
-       if (Schema::hasColumn('categories', 'slug')) {
+        if (Schema::hasColumn('categories', 'slug')) {
             $cat = Category::where('slug', $category)
                 ->orWhereRaw('LOWER(name) = ?', [strtolower($category)])
                 ->first();
@@ -25,9 +25,9 @@ class CategoryController extends Controller
         }
 
         if (! $cat) {
-            
-            $cat = new Category();
-            $cat->name = ucwords(str_replace(['-','_'], ' ', $category));
+
+            $cat = new Category;
+            $cat->name = ucwords(str_replace(['-', '_'], ' ', $category));
             $cat->setRelation('products', collect());
         } else {
             $cat->load('products');

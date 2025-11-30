@@ -1,6 +1,7 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require __DIR__ . '/../bootstrap/app.php';
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
@@ -14,7 +15,7 @@ if (! $orderId) {
 
 if ($json) {
     $data = @json_decode($json, true);
-    if (!is_array($data)) {
+    if (! is_array($data)) {
         echo "Invalid JSON payload\n";
         exit(1);
     }
@@ -24,4 +25,4 @@ if ($json) {
 }
 
 \Illuminate\Support\Facades\DB::table('orders')->where('id', $orderId)->update(['shipping_address' => json_encode($data), 'updated_at' => now()]);
-echo "Updated order {$orderId} shipping_address to: \n" . json_encode($data, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE) . "\n";
+echo "Updated order {$orderId} shipping_address to: \n".json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)."\n";

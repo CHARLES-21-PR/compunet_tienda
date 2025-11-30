@@ -104,7 +104,7 @@
                                     <x-dropdown-link :href="route('admin.dashboard.index')">{{ __('Panel admin') }}</x-dropdown-link>
                                 @endrole
                                 <form method="POST" action="{{ route('logout') }}">@csrf
-                                    <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Cerrar sesiónS') }}</x-dropdown-link>
+                                    <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Cerrar sesión') }}</x-dropdown-link>
                                 </form>
                             </x-slot>
                         </x-dropdown>

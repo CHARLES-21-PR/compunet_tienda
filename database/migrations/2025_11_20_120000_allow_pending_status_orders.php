@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -14,7 +14,7 @@ return new class extends Migration
             Schema::table('orders', function (Blueprint $table) {
                 // estados en español: pagado, pendiente, fallido, cancelado, entregado
                 // NOTA: no establecer valor por defecto aquí; la aplicación decidirá el estado inicial según el método de pago.
-                $table->enum('status', ['pagado','pendiente','fallido','cancelado','entregado'])->change();
+                $table->enum('status', ['pagado', 'pendiente', 'fallido', 'cancelado', 'entregado'])->change();
             });
         } catch (\Throwable $e) {
             // fallback: ensure existing rows have a sensible value

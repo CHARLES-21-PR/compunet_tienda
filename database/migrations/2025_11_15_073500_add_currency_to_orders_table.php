@@ -13,7 +13,7 @@ class AddCurrencyToOrdersTable extends Migration
      */
     public function up()
     {
-        if (!Schema::hasColumn('orders', 'currency')) {
+        if (! Schema::hasColumn('orders', 'currency')) {
             Schema::table('orders', function (Blueprint $table) {
                 $table->string('currency', 8)->nullable()->after('shipping_address');
             });

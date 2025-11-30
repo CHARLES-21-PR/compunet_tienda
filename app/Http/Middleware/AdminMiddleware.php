@@ -2,12 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use App\Models\User;
+use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
 {
@@ -28,7 +28,7 @@ class AdminMiddleware
                 'session_id' => session()->getId(),
                 'cookies' => $request->cookies->all(),
                 'ip' => $request->ip(),
-                'user_agent' => $request->header('User-Agent')
+                'user_agent' => $request->header('User-Agent'),
             ]);
         } catch (\Throwable $_e) {
             // do not block request for logging failures

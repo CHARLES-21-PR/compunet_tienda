@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class ClientController extends Controller
 {
@@ -13,13 +13,14 @@ class ClientController extends Controller
         $q = $request->query('q');
         $query = User::query();
         if ($q) {
-            $query->where(function($s) use ($q){
+            $query->where(function ($s) use ($q) {
                 $s->where('name', 'like', "%{$q}%")
-                  ->orWhere('email', 'like', "%{$q}%");
+                    ->orWhere('email', 'like', "%{$q}%");
             });
         }
-        $users = $query->orderBy('created_at','desc')->paginate(10);
-        return view('settings.clients.index', compact('users','q'));
+        $users = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        return view('settings.clients.index', compact('users', 'q'));
     }
 
     public function create()
@@ -38,9 +39,9 @@ class ClientController extends Controller
         ]);
 
         // Normalize name: prefer explicit 'name', otherwise join firstname + lastname
-        $name = trim(($data['name'] ?? '') ?: (($data['firstname'] ?? '') . ' ' . ($data['lastname'] ?? '')));
+        $name = trim(($data['name'] ?? '') ?: (($data['firstname'] ?? '').' '.($data['lastname'] ?? '')));
         if (empty($name)) {
-            $name = 'Cliente ' . substr(uniqid(), -6);
+            $name = 'Cliente '.substr(uniqid(), -6);
         }
 
         $payload = [
@@ -48,14 +49,15 @@ class ClientController extends Controller
             'email' => $data['email'],
         ];
 
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $payload['password'] = bcrypt($data['password']);
         } else {
             $payload['password'] = bcrypt(\Illuminate\Support\Str::random(10));
         }
 
         $user = User::create($payload);
-        return redirect()->route('settings.clients.index')->with('success','Cliente creado.');
+
+        return redirect()->route('settings.clients.index')->with('success', 'Cliente creado.');
     }
 
     public function edit(User $client)
@@ -73,19 +75,20 @@ class ClientController extends Controller
             'password' => 'nullable|string|min:6',
         ]);
 
-        $name = trim(($data['name'] ?? '') ?: (($data['firstname'] ?? '') . ' ' . ($data['lastname'] ?? '')));
-        if (!empty($name)) {
+        $name = trim(($data['name'] ?? '') ?: (($data['firstname'] ?? '').' '.($data['lastname'] ?? '')));
+        if (! empty($name)) {
             $payload['name'] = $name;
         }
 
         $payload['email'] = $data['email'];
 
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $payload['password'] = bcrypt($data['password']);
         }
 
         $client->update($payload ?? []);
-        return redirect()->route('settings.clients.index')->with('success','Cliente actualizado.');
+
+        return redirect()->route('settings.clients.index')->with('success', 'Cliente actualizado.');
     }
 
     public function show(User $client)
@@ -96,6 +99,7 @@ class ClientController extends Controller
     public function destroy(User $client)
     {
         $client->delete();
-        return redirect()->route('settings.clients.index')->with('success','Cliente eliminado.');
+
+        return redirect()->route('settings.clients.index')->with('success', 'Cliente eliminado.');
     }
 }

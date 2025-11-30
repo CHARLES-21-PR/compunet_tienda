@@ -7,7 +7,7 @@ class PaymentService
     public function charge(array $payload): array
     {
         // Simulate charging and persist a payment record
-        $transactionId = 'sim_txn_' . uniqid();
+        $transactionId = 'sim_txn_'.uniqid();
         $amount = isset($payload['amount']) ? floatval($payload['amount']) : 0;
         $method = $payload['payment_method'] ?? ($payload['method'] ?? 'simulated');
         // Basic simulation rules per method
@@ -47,6 +47,7 @@ class PaymentService
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
             return [
                 'success' => true,
                 'transaction_id' => $transactionId,
