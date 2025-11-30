@@ -2,7 +2,7 @@
 FROM composer:2 AS composer_stage
 WORKDIR /app
 
-# Copiar solo composer.json y composer.lock primero (cache más eficiente)
+# Copiar archivos esenciales para composer
 COPY composer.json composer.lock ./
 
 # Instalar dependencias sin dev y sin scripts
@@ -11,26 +11,25 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 # Copiar el resto del proyecto
 COPY . .
 
-# Etapa 2: PHP-FPM Productivo
+
+
+# Etapa 2: PHP-FPM
 FROM php:8.2-fpm
+
 WORKDIR /var/www/html
 
-# Extensiones necesarias
-RUN docker-php-ext-install pdo pdo_mysql
+# Extensiones PHP necesarias
+RUN apt-get update && apt-get install -y \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev
 
-# Copiar archivos ya procesados
+RUN docker-php-ext-install pdo pdo_mysql zip mbstring tokenizer xml
+
+# Copiar aplicación del primer stage
 COPY --from=composer_stage /app ./
-
-# Scripts artisan después de copiar y con .env cargado por Render
-RUN php artisan package:discover
-RUN php artisan config:cache
-RUN php artisan route:cache
 
 # Permisos
 RUN chown -R www-data:www-data storage bootstrap/cache
-
-# Puerto
-EXPOSE 9000
-
-CMD ["php-fpm"]
-
