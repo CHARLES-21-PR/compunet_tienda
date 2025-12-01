@@ -1,42 +1,45 @@
-# ============================================
-# STAGE 1: Composer dependencies
-# ============================================
-FROM php:8.2-cli AS composer_stage
+# -----------------------------------------------------
+# Etapa 1: Composer (solo para instalar dependencias)
+# -----------------------------------------------------
+FROM composer:2 AS build
 
-# Instalar extensiones necesarias
+WORKDIR /app
+
+# Copiar archivos necesarios para composer
+COPY composer.json composer.lock ./
+
+# Instalar dependencias (sin dev para producción)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+
+# -----------------------------------------------------
+# Etapa 2: Imagen final Laravel + PHP-FPM + Nginx
+# -----------------------------------------------------
+FROM php:8.2-fpm
+
+WORKDIR /var/www/html
+
+# Instalar extensiones de PHP necesarias para Laravel
 RUN apt-get update && apt-get install -y \
-    unzip git libpng-dev libzip-dev libonig-dev \
-    && docker-php-ext-install pdo_mysql gd zip
+    nginx \
+    unzip \
+    git \
+    && docker-php-ext-install pdo pdo_mysql
 
-# Instalar Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Copiar Nginx config
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# Crear carpeta y copiar todo el proyecto
-WORKDIR /var/www
+# Copiar la app completa
 COPY . .
 
-# Instalar dependencias SIN DEV y SIN SCRIPTS (para evitar artisan)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+# Copiar los vendor instalados desde la etapa build
+COPY --from=build /app/vendor ./vendor
 
+# Permisos para almacenamiento y cache
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# ============================================
-# STAGE 2: PHP-FPM para producción
-# ============================================
-FROM php:8.2-fpm AS app
+# Exponer puerto 80 (Render lo escaneará)
+EXPOSE 80
 
-# Instalar extensiones necesarias
-RUN apt-get update && apt-get install -y \
-    unzip git libpng-dev libzip-dev libonig-dev \
-    && docker-php-ext-install pdo_mysql gd zip
-
-WORKDIR /var/www
-
-# Copiamos el resultado del stage de Composer
-COPY --from=composer_stage /var/www /var/www
-
-# Dar permisos correctos
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-
-EXPOSE 9000
-CMD ["php-fpm"]
-
+# Iniciar Nginx + PHP-FPM al mismo tiempo
+CMD service nginx start && php-fpm
