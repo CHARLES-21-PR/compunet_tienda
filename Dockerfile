@@ -3,43 +3,43 @@
 # ============================================
 FROM php:8.2-cli AS composer_stage
 
-# Instalar extensiones necesarias
 RUN apt-get update && apt-get install -y \
     unzip git libpng-dev libzip-dev libonig-dev \
     && docker-php-ext-install pdo_mysql gd zip
 
-# Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copiar Nginx config
-COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
-
-# Crear carpeta y copiar todo el proyecto
 WORKDIR /var/www
 COPY . .
 
-# Instalar dependencias SIN DEV y SIN SCRIPTS (para evitar artisan)
+# Instalar dependencias sin dev y sin scripts
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 
-# ============================================
-# STAGE 2: PHP-FPM para producción
-# ============================================
-FROM php:8.2-fpm AS app
 
-# Instalar extensiones necesarias
-RUN apt-get update && apt-get install -y \
+# ============================================
+# STAGE 2: Producción (PHP-FPM + Nginx)
+# ============================================
+FROM php:8.2-fpm
+
+# Instalar Nginx
+RUN apt-get update && apt-get install -y nginx \
     unzip git libpng-dev libzip-dev libonig-dev \
     && docker-php-ext-install pdo_mysql gd zip
 
 WORKDIR /var/www
 
-# Copiamos el resultado del stage de Composer
+# Copiar proyecto ya con vendor
 COPY --from=composer_stage /var/www /var/www
 
-# Dar permisos correctos
+# Copiar config de nginx
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Permisos Laravel
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
+# Render necesita este puerto
 EXPOSE 80
-CMD ["php-fpm"]
 
+# Arrancar nginx + php-fpm juntos
+CMD service nginx start && php-fpm
