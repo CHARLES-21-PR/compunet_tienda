@@ -1,7 +1,4 @@
-# ============================================
-# STAGE 1: Composer dependencies
-# ============================================
-FROM php:8.4-fpm AS composer_stage
+FROM php:8.4-fpm
 
 WORKDIR /var/www
 
@@ -13,24 +10,22 @@ RUN apt-get update && apt-get install -y \
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copiar composer.json y composer.lock primero
+# Copiar composer.json y lock
 COPY composer.json composer.lock ./
 
-# Instalar dependencias sin dev, sin scripts
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
 
-# Copiar el resto del proyecto
+# Copiar proyecto
 COPY . .
 
-# Dar permisos correctos
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Copiar config de Nginx
+# Copiar config nginx
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# Exponer puerto
-EXPOSE 80
+# EXPOSE no importa en Render, pero lo dejamos
+EXPOSE 8080
 
-# CMD para Render: PHP-FPM y Nginx en primer plano
-CMD ["sh", "-c", "php-fpm -F && nginx -g 'daemon off;'"]
+# Arrancar todo
+CMD ["sh", "-c", "php-fpm -F & nginx -g 'daemon off;'"]
 
