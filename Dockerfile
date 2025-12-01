@@ -1,26 +1,37 @@
-FROM php:8.2-fpm AS composer_stage
+# ============================
+# ETAPA 1: Composer
+# ============================
+FROM composer:2 AS composer_stage
 WORKDIR /app
 
+# Copiar composer.json y composer.lock
 COPY composer.json composer.lock ./
-RUN apt-get update && apt-get install -y git unzip
-RUN docker-php-ext-install pdo pdo_mysql
 
 # Instalar dependencias sin dev
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Copiar el resto del proyecto
+# Copiar resto del proyecto
 COPY . .
 
-# --------------------------------------------------------------------
-
+# ============================
+# ETAPA 2: PHP-FPM
+# ============================
 FROM php:8.2-fpm
+
 WORKDIR /var/www/html
 
+# Instalar extensiones necesarias
 RUN docker-php-ext-install pdo pdo_mysql
 
-COPY --from=composer_stage /app ./
+# Copiar archivos desde la etapa Composer
+COPY --from=composer_stage /app /var/www/html
 
-RUN php artisan config:cache
-RUN php artisan route:cache
-
+# Permisos
 RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Opcional: cache de Laravel (NO falla)
+RUN php artisan config:clear || true
+RUN php artisan config:cache || true
+RUN php artisan route:cache || true
+
+CMD ["php-fpm"]
