@@ -1,31 +1,39 @@
 FROM php:8.2-fpm
 
-WORKDIR /var/www
-
-# Dependencias de PHP
+# Instalar dependencias
 RUN apt-get update && apt-get install -y \
-    unzip git libpng-dev libzip-dev libonig-dev \
     nginx \
-    && docker-php-ext-install pdo_mysql gd zip
+    unzip \
+    git \
+    libpng-dev \
+    libzip-dev \
+    libonig-dev \
+    && docker-php-ext-install pdo_mysql zip gd
 
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# ---------------------------------------------------------
-# 1. COPIAR TODO EL PROYECTO (incluye artisan)
-# ---------------------------------------------------------
+WORKDIR /var/www/html
+
+# Copiar archivos de composer primero
+COPY composer.json composer.lock ./
+
+# Instalar dependencias (sin ejecutar artisan)
+RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts
+
+# Copiar el proyecto
 COPY . .
 
-# 2. AHORA sí ejecutar composer install
-RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+# Copiar config de Nginx
+COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# Permisos correctos
+# Dar permisos
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Copiar config de Nginx
-COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+# Crear carpeta para php-fpm
+RUN mkdir -p /run/php
 
 EXPOSE 80
 
-CMD ["sh", "-c", "php-fpm -D && exec nginx -g 'daemon off;'"]
-
+# Iniciar php-fpm y nginx
+CMD service php8.2-fpm start && nginx -g "daemon off;"
