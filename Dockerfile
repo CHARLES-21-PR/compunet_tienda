@@ -2,30 +2,31 @@ FROM php:8.4-fpm
 
 WORKDIR /var/www
 
-# Instalar extensiones necesarias
 RUN apt-get update && apt-get install -y \
-    unzip git libpng-dev libzip-dev libonig-dev nginx \
+    unzip git libpng-dev libzip-dev libonig-dev \
+    nginx \
     && docker-php-ext-install pdo_mysql gd zip
 
-# Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Eliminar configs por defecto
-RUN rm -f /etc/nginx/conf.d/* /etc/nginx/sites-enabled/default
-
-# Copiar config de Nginx
-COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
-
-# Copiar composer.json e instalar dependencias
+# Primero solo composer.json
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-# Copiar proyecto
+# Instalar dependencias SIN scripts
+RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
+
+# Copiar todo el proyecto (artisán incluido)
 COPY . .
 
-# Permisos Laravel
+# Ejecutar scripts post-autoload-dump
+RUN composer dump-autoload --optimize && composer run-script post-autoload-dump
+
+# Permisos
 RUN chown -R www-data:www-data storage bootstrap/cache
+
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
-CMD ["sh", "-c", "php-fpm & nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "php-fpm && nginx -g 'daemon off;'"]
+
