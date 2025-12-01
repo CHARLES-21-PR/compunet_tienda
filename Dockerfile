@@ -1,48 +1,42 @@
-# ===========================
+# ============================================
 # STAGE 1: Composer dependencies
-# ===========================
-FROM php:8.2-fpm AS composer_stage
+# ============================================
+FROM php:8.2-cli AS composer_stage
 
-# Instalar dependencias del sistema
+# Instalar extensiones necesarias
 RUN apt-get update && apt-get install -y \
-    unzip \
-    git \
-    libzip-dev \
-    && docker-php-ext-install zip
+    unzip git libpng-dev libzip-dev libonig-dev \
+    && docker-php-ext-install pdo_mysql gd zip
 
-# Instalar Composer dentro del contenedor
+# Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Copiar archivos necesarios para instalar dependencias
-WORKDIR /var/www/html
-COPY composer.json composer.lock ./
-
-# Instalar dependencias sin dev
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-
-# ===========================
-# STAGE 2: App final
-# ===========================
-FROM php:8.2-fpm AS app
-
-# Instalar dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    libzip-dev \
-    unzip \
-    && docker-php-ext-install zip
-
-WORKDIR /var/www/html
-
-# Copiar todos los archivos del proyecto
+# Crear carpeta y copiar todo el proyecto
+WORKDIR /var/www
 COPY . .
 
-# Copiar dependencias instaladas en el stage anterior
-COPY --from=composer_stage /var/www/html/vendor ./vendor
+# Instalar dependencias SIN DEV y SIN SCRIPTS (para evitar artisan)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Asignar permisos (importante para storage y cache)
-RUN chmod -R 775 storage bootstrap/cache
+
+# ============================================
+# STAGE 2: PHP-FPM para producción
+# ============================================
+FROM php:8.2-fpm AS app
+
+# Instalar extensiones necesarias
+RUN apt-get update && apt-get install -y \
+    unzip git libpng-dev libzip-dev libonig-dev \
+    && docker-php-ext-install pdo_mysql gd zip
+
+WORKDIR /var/www
+
+# Copiamos el resultado del stage de Composer
+COPY --from=composer_stage /var/www /var/www
+
+# Dar permisos correctos
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 9000
-
 CMD ["php-fpm"]
+
