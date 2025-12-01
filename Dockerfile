@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y \
 # Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Copiar Nginx config
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+
 # Crear carpeta y copiar todo el proyecto
 WORKDIR /var/www
 COPY . .
