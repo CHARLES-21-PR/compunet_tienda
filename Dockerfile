@@ -23,7 +23,7 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 COPY ./docker/nginx/default.conf /etc/nginx/sites-available/default
 
 # Copiar supervisor config
-COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Exponer el puerto que Render requiere
 EXPOSE 10000
