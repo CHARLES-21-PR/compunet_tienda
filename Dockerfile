@@ -1,28 +1,19 @@
-# -------- Etapa 1: Composer --------
-FROM composer:2 AS composer_stage
-WORKDIR /app
+FROM php:8.2-fpm AS composer_stage
 
-# Copiar archivos composer
+# Instalar dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    git unzip libpng-dev libonig-dev libxml2-dev
+
+# Instalar Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Copiar archivos
+WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 
-# Instalar dependencias sin dev para producción
+# Instalar dependencias
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Copiar todo el proyecto
 COPY . .
 
-# -------- Etapa 2: PHP-FPM --------
-FROM php:8.2-fpm
-WORKDIR /var/www/html
-
-# Extensiones necesarias
-RUN docker-php-ext-install pdo pdo_mysql
-
-# Copiar app desde composer stage
-COPY --from=composer_stage /app .
-
-# Permisos correctos
-RUN chown -R www-data:www-data storage bootstrap/cache
-
-# Caches
-RUN php artisan config:cache && php artisan route:cache
