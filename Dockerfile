@@ -3,7 +3,7 @@ FROM php:8.2-fpm
 # Instalar dependencias (Agregando supervisor y limpiando)
 RUN apt-get update && apt-get install -y \
     nginx \
-    supervisor \ # <--- INSTALAR SUPERVISORD
+    supervisor \
     unzip \
     git \
     libpng-dev \
