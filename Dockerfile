@@ -37,7 +37,7 @@ COPY --from=vendor /app /var/www
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
 # Copiar supervisord config
-COPY ./docker/supervisor.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ./docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Permisos Laravel
 RUN chown -R www-data:www-data storage bootstrap/cache
