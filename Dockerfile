@@ -26,6 +26,8 @@ COPY . .
 
 RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts
 
+# Dentro de tu Dockerfile, antes de copiar tu default.conf:
+RUN rm /etc/nginx/conf.d/default.conf 
 
 
 # Copiar config de Nginx
