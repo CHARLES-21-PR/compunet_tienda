@@ -2,29 +2,29 @@ FROM php:8.4-fpm
 
 WORKDIR /var/www
 
+# Instalar extensiones necesarias
 RUN apt-get update && apt-get install -y \
     unzip git libpng-dev libzip-dev libonig-dev nginx \
     && docker-php-ext-install pdo_mysql gd zip
 
+# Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# 1. Copiar archivos de composer
-COPY composer.json composer.lock /var/www/
-
-# 2. Primer composer sin scripts (evita el error de artisan)
-RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts
-
-# 3. Copiar todo el proyecto
-COPY . /var/www/
-
-# 4. Segundo composer con scripts (artisan ya existe)
-RUN composer install --no-dev --prefer-dist --no-interaction
-
-# Permisos
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Eliminar configs por defecto
+RUN rm -f /etc/nginx/conf.d/* /etc/nginx/sites-enabled/default
 
 # Copiar config de Nginx
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Copiar composer.json e instalar dependencias
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+# Copiar proyecto
+COPY . .
+
+# Permisos Laravel
+RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
 
