@@ -1,34 +1,22 @@
 FROM php:8.4-fpm
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
-# Instalar extensiones necesarias
 RUN apt-get update && apt-get install -y \
     unzip git libpng-dev libzip-dev libonig-dev nginx \
     && docker-php-ext-install pdo_mysql gd zip
 
-# Instalar Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Copiar composer.json y lock
 COPY composer.json composer.lock ./
 
-RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
+RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-RUN rm -f /etc/nginx/conf.d/default.conf
-RUN rm -f /etc/nginx/sites-enabled/default
-
-# Copiar proyecto
 COPY . .
 
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Copiar config nginx
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# EXPOSE no importa en Render, pero lo dejamos
-EXPOSE 8080
+EXPOSE 80
 
-# Arrancar todo
-CMD ["sh", "-c", "php-fpm -F & nginx -g 'daemon off;'"]
-
+CMD ["sh", "-c", "php-fpm & nginx -g 'daemon off;'"]
