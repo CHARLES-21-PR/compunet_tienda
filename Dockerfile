@@ -15,6 +15,9 @@ COPY composer.json composer.lock ./
 
 RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
 
+RUN rm -f /etc/nginx/conf.d/default.conf
+RUN rm -f /etc/nginx/sites-enabled/default
+
 # Copiar proyecto
 COPY . .
 
