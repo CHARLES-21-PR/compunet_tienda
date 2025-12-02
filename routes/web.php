@@ -69,7 +69,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
 
     // crud categorias
     Route::get('/settings/categories/create', [CategorySettingsController::class, 'create'])->name('admin.categories.create');
-    Route::post('/settings/categories', [CategorySettingsController::class, 'store'])->name('admin.caadmin.store');
+    Route::post('/settings/categories', [CategorySettingsController::class, 'store'])->name('admin.categories.store');
     Route::get('/settings/categories/{category:id}/edit', [CategorySettingsController::class, 'edit'])->name('admin.categories.edit');
     Route::put('/settings/categories/{category:id}', [CategorySettingsController::class, 'update'])->name('admin.categories.update');
     Route::delete('/settings/categories/{category:id}', [CategorySettingsController::class, 'destroy'])->name('admin.categories.destroy');

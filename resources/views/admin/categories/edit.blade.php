@@ -3,7 +3,7 @@
         <div class="container-fluid">
             <div class="row g-0">
                 <div class="col-12 col-md-3 px-0">
-                    @include('settings.nav_cate')
+                    @include('admin.partials.nav_cate')
                 </div>
                     <div id="settings-main" class="col-12 col-md-9 ps-md-1">
                         <div class="bg-dark rounded-3 p-3">

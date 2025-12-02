@@ -1923,3 +1923,24 @@ section .mar.mar4 {
 .notif-dropdown-body::-webkit-scrollbar { width:10px; }
 .notif-dropdown-body::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#e6e6e6,#d1d5db); border-radius:8px; }
 .notif-dropdown-body::-webkit-scrollbar-track { background: transparent; }
+
+input, textarea, select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #d1d5db !important;
+}
+
+/* Placeholder legible */
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
+/* Mantener soporte para modo oscuro si usas clases .dark */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #0f1729 !important; /* ejemplo: oscuro en dark mode */
+  color: #e5e7eb !important;
+}

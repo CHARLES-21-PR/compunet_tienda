@@ -20,12 +20,12 @@ class ClientController extends Controller
         }
         $users = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        return view('settings.clients.index', compact('users', 'q'));
+        return view('admin.clients.index', compact('users', 'q'));
     }
 
     public function create()
     {
-        return view('settings.clients.create');
+        return view('admin.clients.create');
     }
 
     public function store(Request $request)
@@ -57,12 +57,12 @@ class ClientController extends Controller
 
         $user = User::create($payload);
 
-        return redirect()->route('settings.clients.index')->with('success', 'Cliente creado.');
+        return redirect()->route('admin.clients.index')->with('success', 'Cliente creado.');
     }
 
     public function edit(User $client)
     {
-        return view('settings.clients.edit', ['client' => $client]);
+        return view('admin.clients.edit', ['client' => $client]);
     }
 
     public function update(Request $request, User $client)
@@ -88,18 +88,18 @@ class ClientController extends Controller
 
         $client->update($payload ?? []);
 
-        return redirect()->route('settings.clients.index')->with('success', 'Cliente actualizado.');
+        return redirect()->route('admin.clients.index')->with('success', 'Cliente actualizado.');
     }
 
     public function show(User $client)
     {
-        return view('settings.clients.show', ['client' => $client]);
+        return view('admin.clients.show', ['client' => $client]);
     }
 
     public function destroy(User $client)
     {
         $client->delete();
 
-        return redirect()->route('settings.clients.index')->with('success', 'Cliente eliminado.');
+        return redirect()->route('admin.clients.index')->with('success', 'Cliente eliminado.');
     }
 }
