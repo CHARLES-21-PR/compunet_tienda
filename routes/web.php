@@ -67,6 +67,9 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
     // Dashboard de administracion
     Route::get('/settings/dashboard', [Controller::class, 'index_dashboard'])->name('admin.dashboard.index');
 
+    // Endpoint to fetch low-stock products for a category (AJAX)
+    Route::get('/settings/categories/{category}/low-products', [Controller::class, 'low_products'])->name('admin.categories.low_products');
+
     // crud categorias
     Route::get('/settings/categories/create', [CategorySettingsController::class, 'create'])->name('admin.categories.create');
     Route::post('/settings/categories', [CategorySettingsController::class, 'store'])->name('admin.categories.store');

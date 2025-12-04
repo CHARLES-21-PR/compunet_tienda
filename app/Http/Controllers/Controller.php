@@ -42,7 +42,11 @@ class Controller extends BaseController
 
             // Get categories with product counts and a few products (include stock).
             // Order categories by products_count desc so busy categories appear first.
+            // Also load the minimum product stock per category so the view can
+            // decide the widget color based on the actual lowest stock across
+            // all products in the category (not only the few eager-loaded items).
             $categories = \App\Models\Category::withCount('products')
+                ->withMin('products', 'stock')
                 ->with(['products' => function ($q) {
                     $q->select('id', 'name', 'category_id', 'stock')->orderBy('stock', 'desc')->limit(6);
                 }])
@@ -235,5 +239,38 @@ class Controller extends BaseController
     {
         return view('nuestras_tiendas');
 
+    }
+
+    /**
+     * Return JSON list of low-stock products for a given category.
+     * Used by the admin dashboard low-stock modal via AJAX.
+     */
+    public function low_products(\Illuminate\Http\Request $request, $categoryId)
+    {
+        try {
+            $lowMax = config('stock.thresholds.low', 5);
+            $midMax = config('stock.thresholds.mid', 10);
+
+            $level = $request->query('level');
+            // default: low range (1..lowMax)
+            if ($level === 'mid') {
+                $min = $lowMax + 1;
+                $max = $midMax;
+            } else {
+                $min = 1;
+                $max = $lowMax;
+            }
+
+            $products = \App\Models\Product::where('category_id', $categoryId)
+                ->whereRaw('CAST(stock AS SIGNED) >= ?', [$min])
+                ->whereRaw('CAST(stock AS SIGNED) <= ?', [$max])
+                ->orderBy('stock', 'asc')
+                ->get(['id', 'name', 'stock']);
+
+            return response()->json(['ok' => true, 'items' => $products]);
+        } catch (\Throwable $e) {
+            try { Log::error('low_products error', ['err' => $e->getMessage(), 'cat' => $categoryId]); } catch (\Throwable $_) {}
+            return response()->json(['ok' => false, 'items' => []], 500);
+        }
     }
 }

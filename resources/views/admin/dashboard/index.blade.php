@@ -23,34 +23,97 @@
                                 @forelse($categories as $cat)
                                     @php
                                         $products = collect($cat->products ?? []);
-                                        $lowProducts = $products->filter(function($p){ return intval($p->stock ?? 0) > 0 && intval($p->stock ?? 0) <= 5; })->values();
-                                        $midProducts = $products->filter(function($p){ return intval($p->stock ?? 0) >= 6 && intval($p->stock ?? 0) <= 10; })->values();
+
+                                        // Load thresholds from config (defaults if not set)
+                                        $lowMax = config('stock.thresholds.low', 5);
+                                        $midMax = config('stock.thresholds.mid', 10);
+                                        $lowMin = 1; // stock > 0 considered for low
+                                        $midMin = $lowMax + 1;
+
+                                        // Build numeric stocks collection (ignore non-numeric stock values)
+                                        $stocks = $products->map(function($p){
+                                            $s = $p->stock ?? null;
+                                            if (is_numeric($s)) return intval($s);
+                                            if (is_string($s)) {
+                                                $num = preg_replace('/[^0-9\-]/', '', $s);
+                                                return $num === '' ? null : intval($num);
+                                            }
+                                            return null;
+                                        })->filter(function($v){ return $v !== null; })->values();
+
+                                        // Prefer the aggregated min stock provided by the query
+                                        // (added via withMin('products','stock') in the controller).
+                                        // Fallback to the eager-loaded products collection if not present.
+                                        if (isset($cat->products_min_stock) && is_numeric($cat->products_min_stock)) {
+                                            $minStock = intval($cat->products_min_stock);
+                                        } else {
+                                            $minStock = $stocks->count() ? $stocks->min() : null;
+                                        }
+                                        $maxStock = $stocks->count() ? $stocks->max() : null;
+
+                                        // Determine counts for detail view
+                                        $lowProducts = $products->filter(function($p) use ($lowMin, $lowMax) { $s = is_numeric($p->stock ?? null) ? intval($p->stock) : null; return $s !== null && $s >= $lowMin && $s <= $lowMax; })->values();
+                                        $midProducts = $products->filter(function($p) use ($midMin, $midMax) { $s = is_numeric($p->stock ?? null) ? intval($p->stock) : null; return $s !== null && $s >= $midMin && $s <= $midMax; })->values();
                                         $hasLow = $lowProducts->isNotEmpty();
                                         $hasMid = $midProducts->isNotEmpty();
-                                        $allZero = $products->filter(function($p){ return intval($p->stock ?? 0) > 0; })->isEmpty();
-                                        // Background priority: allZero -> gray, hasLow -> red, hasMid -> yellow, else green
-                                        if ($allZero) {
-                                            $bg = 'linear-gradient(90deg,#6b7280,#9ca3af)';
-                                        } elseif ($hasLow) {
-                                            $bg = 'linear-gradient(90deg,#dc2626,#ef4444)';
-                                        } elseif ($hasMid) {
-                                            $bg = 'linear-gradient(90deg,#f59e0b,#d97706)';
+
+                                        // Colors from config with sensible defaults
+                                        $colors = config('stock.colors', [
+                                            'zero' => 'linear-gradient(90deg,#6b7280,#9ca3af)',
+                                            'low'  => 'linear-gradient(90deg,#dc2626,#ef4444)',
+                                            'mid'  => 'linear-gradient(90deg,#f59e0b,#d97706)',
+                                            'ok'   => 'linear-gradient(90deg,#10b981,#059669)',
+                                        ]);
+
+                                        // Decide background based on minStock (most conservative):
+                                        // - if no numeric stocks or all stocks <= 0 -> 'zero'
+                                        // - if minStock <= lowMax and minStock > 0 -> 'low'
+                                        // - elseif minStock <= midMax -> 'mid'
+                                        // - else 'ok'
+                                        if ($minStock === null) {
+                                            $bg = $colors['zero'];
+                                            $allZero = true;
                                         } else {
-                                            $bg = 'linear-gradient(90deg,#10b981,#059669)';
+                                            $allZero = ($stocks->filter(fn($s)=> $s > 0)->isEmpty());
+                                            if ($allZero) {
+                                                $bg = $colors['zero'];
+                                            } elseif ($minStock <= $lowMax && $minStock > 0) {
+                                                $bg = $colors['low'];
+                                            } elseif ($minStock <= $midMax) {
+                                                $bg = $colors['mid'];
+                                            } else {
+                                                $bg = $colors['ok'];
+                                            }
                                         }
+                                        // For debugging: expose computed values when ?debug_dashboard=1 is present
+                                        $debugDashboard = request()->get('debug_dashboard');
+                                        // note: $minStock may already come from products_min_stock
+                                        $computedMinFromCollection = $products->filter(fn($p)=> is_numeric($p->stock ?? null))->min(fn($p)=> intval($p->stock ?? 0));
+                                        $computedMaxFromCollection = $products->filter(fn($p)=> is_numeric($p->stock ?? null))->max(fn($p)=> intval($p->stock ?? 0));
+                                        $totalCount = $products->count();
+                                        $lowCount = $lowProducts->count();
+                                        $midCount = $midProducts->count();
+                                    
                                     @endphp
                                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
-                                        <div class="p-3 h-100 d-flex flex-column justify-content-center align-items-center text-center" style="border-radius:10px; border:1px solid rgba(255,255,255,0.03); background: {{ $bg }};">
+                                        <div class="p-3 h-100 d-flex flex-column justify-content-center align-items-center text-center" style="border-radius:10px; border:1px solid rgba(255,255,255,0.03); background: {{ $bg }} !important;" data-chosen-bg="{{ $bg }}">
                                             <div class="h3 text-white mb-1">{{ $cat->products_count ?? 0 }}</div>
                                             <div class="text-white-75 small mb-2">productos</div>
                                             <div class="h6 text-white mb-0">{{ $cat->name }}</div>
+                                                @if($debugDashboard)
+                                                    <div class="mt-2 text-start w-100 small" style="background:rgba(255,255,255,0.06); padding:6px;border-radius:6px;color:#fff;">
+                                                        <div>total: {{ $totalCount }} — min: {{ $minStock ?? 'n/a' }} — max: {{ $maxStock ?? 'n/a' }}</div>
+                                                        <div>low (<= {{ $lowMax }}): {{ $lowCount }} — mid ({{ $midMin }}-{{ $midMax }}): {{ $midCount }}</div>
+                                                        <div>allZero: {{ $allZero ? 'yes' : 'no' }} — chosen color: {{ $bg }}</div>
+                                                    </div>
+                                                @endif
                                             @php
                                                 $showDetails = $hasLow || $hasMid;
                                                 $detailsProducts = $hasLow ? $lowProducts : ($hasMid ? $midProducts : collect());
                                             @endphp
                                             <div class="mt-2">
-                                                @if($showDetails)
-                                                    <button class="btn btn-sm btn-light text-dark btn-show-low mt-2" type="button" data-low='@json($detailsProducts)' data-category-name="{{ $cat->name }}">Ver detalles</button>
+                                                @if($showDetails || (isset($cat->products_min_stock) && is_numeric($cat->products_min_stock) && intval($cat->products_min_stock) <= $midMax))
+                                                    <button class="btn btn-sm btn-light text-dark btn-show-low mt-2" type="button" data-low='@json($detailsProducts)' data-category-id="{{ $cat->id }}" data-category-name="{{ $cat->name }}" data-products-min="{{ $cat->products_min_stock ?? '' }}" data-low-max="{{ $lowMax }}" data-mid-max="{{ $midMax }}">Ver detalles</button>
                                                 @endif
                                             </div>
                                         </div>
@@ -62,11 +125,29 @@
                                 @endforelse
                             </div>
                         </div>
-
+                        <h2 class="h5 text-white mb-3">Pedidos recientes y estadísticas</h2>
+                         <div style="margin-top:14px;">
+                        
+                            <div style="background: rgba(255,255,255,0.02); padding:0 16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);" class="mt-3">
+                            <strong class="text-white">Pedidos por día</strong>
+                            <div class="d-flex flex-wrap mt-2" style="gap:8px;">
+                                @if(!empty($ordersCountByDay) && $ordersCountByDay->count())
+                                    @foreach($ordersCountByDay as $date => $count)
+                                        <div style="background: linear-gradient(135deg,#475569,#0f172a); padding:8px 12px; border-radius:10px; min-width:110px; color:white; border:1px solid rgba(255,255,255,0.03);">
+                                            <div class="small" style="opacity:0.9">{{ $date }}</div>
+                                            <div class="h5 mb-0">{{ $count }}</div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="text-white-50 small">No hay datos para las fechas seleccionadas.</div>
+                                @endif
+                            </div>
+                         </div>
                         {{-- Orders widget --}}
-                       <div style="background: rgba(255,255,255,0.02); padding:16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);">
+                       <div style="background: rgba(255,255,255,0.02); padding:0 16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);">
+                            
     <form id="dashboard-filter-form" action="{{ route('admin.dashboard.index') }}" method="GET" class="d-flex flex-wrap align-items-end" style="gap:12px;">
-        
+        <h3 class="h6 text-white w-100 mb-2">Filtrar pedidos por fecha</h3>
         <div class="flex flex-col">
                  <label for="start_date" class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Fecha Inicio</label>
                  <input type="date" 
@@ -115,22 +196,7 @@
 </div>
 
                 {{-- Orders aggregation and results --}}
-                <div style="margin-top:14px;">
-                        <div class="mt-3">
-                        <strong class="text-white">Pedidos por día</strong>
-                        <div class="d-flex flex-wrap mt-2" style="gap:8px;">
-                            @if(!empty($ordersCountByDay) && $ordersCountByDay->count())
-                                @foreach($ordersCountByDay as $date => $count)
-                                    <div style="background: linear-gradient(135deg,#475569,#0f172a); padding:8px 12px; border-radius:10px; min-width:110px; color:white; border:1px solid rgba(255,255,255,0.03);">
-                                        <div class="small" style="opacity:0.9">{{ $date }}</div>
-                                        <div class="h5 mb-0">{{ $count }}</div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="text-white-50 small">No hay datos para las fechas seleccionadas.</div>
-                            @endif
-                        </div>
-                    </div>
+                
 
                         <div class="mt-3">
                         <strong class="text-white">Resultados</strong>
@@ -375,14 +441,39 @@
                                 }
 
                                 document.addEventListener('click', function(e){
-                                        const btn = e.target.closest && e.target.closest('.btn-show-low');
-                                        if (!btn) return;
-                                        e.preventDefault();
-                                        const raw = btn.getAttribute('data-low') || '[]';
-                                        let low = [];
-                                        try { low = JSON.parse(raw); } catch (err) { low = []; }
-                                        const catName = btn.getAttribute('data-category-name') || '';
-                                        openLowStockModal(catName, low);
+                                    const btn = e.target.closest && e.target.closest('.btn-show-low');
+                                    if (!btn) return;
+                                    e.preventDefault();
+                                    const raw = btn.getAttribute('data-low') || '[]';
+                                    let low = [];
+                                    try { low = JSON.parse(raw); } catch (err) { low = []; }
+                                    const catName = btn.getAttribute('data-category-name') || '';
+                                    const catId = btn.getAttribute('data-category-id');
+                                    // If we have no embedded low items but we have a category id,
+                                    // fetch the low products from the server endpoint.
+                                        if ((Array.isArray(low) && low.length === 0) && catId) {
+                                                const base = '{{ url('/settings/categories') }}';
+                                                const prodMin = parseInt(btn.getAttribute('data-products-min'));
+                                                const lowMaxAttr = parseInt(btn.getAttribute('data-low-max'));
+                                                const midMaxAttr = parseInt(btn.getAttribute('data-mid-max'));
+                                                let url = base + '/' + encodeURIComponent(catId) + '/low-products';
+                                                // If min stock indicates mid range, request level=mid
+                                                if (!isNaN(prodMin) && !isNaN(lowMaxAttr) && !isNaN(midMaxAttr) && prodMin > lowMaxAttr && prodMin <= midMaxAttr) {
+                                                    url += '?level=mid';
+                                                }
+                                                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                                                    .then(res => res.json())
+                                                    .then(json => {
+                                                        const items = (json && json.ok && Array.isArray(json.items)) ? json.items : [];
+                                                        openLowStockModal(catName, items);
+                                                    })
+                                                    .catch(err => {
+                                                        console.error('Error loading low products', err);
+                                                        openLowStockModal(catName, []);
+                                                    });
+                                        } else {
+                                                openLowStockModal(catName, low);
+                                        }
                                 });
                                 // Handle edit-in-modal button clicks (event delegation)
 
@@ -416,6 +507,27 @@
                                         });
                                     })();
                 </script>
+        <script>
+            // Debug helper: force-applies the chosen background and log computed styles
+            (function(){
+                try{
+                    const els = document.querySelectorAll('[data-chosen-bg]');
+                    els.forEach((el, idx)=>{
+                        const chosen = el.getAttribute('data-chosen-bg');
+                        if(!chosen) return;
+                        // Force apply with priority important
+                        try{ el.style.setProperty('background', chosen, 'important'); } catch(e){}
+                        const cs = window.getComputedStyle(el).backgroundColor || window.getComputedStyle(el).background;
+                        console.groupCollapsed('dashboard-widget['+idx+'] ' + (el.querySelector('.h6') ? el.querySelector('.h6').textContent.trim() : '')); 
+                        console.log('data-chosen-bg:', chosen);
+                        console.log('computed background:', cs);
+                        console.log('inline style:', el.getAttribute('style'));
+                        console.groupEnd();
+                    });
+                    if(!els.length) console.log('dashboard: no widgets with data-chosen-bg found');
+                }catch(err){ console.error('dashboard debug helper error', err); }
+            })();
+        </script>
 
 
     @endsection

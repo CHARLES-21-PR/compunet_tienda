@@ -1,4 +1,4 @@
-<form action="{{ route('settings.products.update', $product) }}" method="POST" enctype="multipart/form-data">
+<form action="{{ route('admin.products.update', $product) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     <div class="mb-3">
@@ -29,7 +29,7 @@
     </div>
     <div class="d-flex" style="gap:8px">
         <button type="submit" class="btn btn-primary">Actualizar</button>
-        <button type="button" class="btn btn-secondary" id="lowStockBackBtnInline">Volver</button>
+        
     </div>
 </form>
 <script>

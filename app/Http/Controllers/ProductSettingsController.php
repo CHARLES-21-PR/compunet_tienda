@@ -28,7 +28,7 @@ class ProductSettingsController extends Controller
             $query->where('category_id', $categoryId);
         }
 
-        $products = $query->orderBy('id')->paginate(10)->withQueryString();
+        $products = $query->orderBy('id')->paginate(9)->withQueryString();
 
         // categories for the filter select
         $categories = Category::orderBy('name')->get();
@@ -52,6 +52,7 @@ class ProductSettingsController extends Controller
             'category_id' => 'required|exists:categories,id',
             'stock' => 'nullable|integer',
             'brand' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:50',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:2048',
             'status' => 'nullable|in:activo,inactivo',
         ]);
@@ -79,11 +80,12 @@ class ProductSettingsController extends Controller
             'category_id' => $request->input('category_id'),
             'stock' => $request->input('stock', 0),
             'brand' => $request->input('brand'),
+            'color' => $request->input('color'),
             'image' => $imagePath,
             'status' => $request->input('status', 'activo'),
         ]);
 
-        return redirect()->route('settings.products.index')->with('success', 'Producto creado exitosamente.');
+        return redirect()->route('admin.products.index')->with('success', 'Producto creado exitosamente.');
     }
 
     public function edit(Product $product)
@@ -106,6 +108,7 @@ class ProductSettingsController extends Controller
             'category_id' => 'required|exists:categories,id',
             'stock' => 'nullable|integer|min:0',
             'brand' => 'nullable|string|max:100',
+            'color' => 'nullable|string|max:50',
             'image' => 'nullable|image|max:2048',
             'status' => 'nullable|in:activo,inactivo',
         ]);
@@ -117,6 +120,7 @@ class ProductSettingsController extends Controller
             'category_id' => $request->input('category_id'),
             'stock' => $request->input('stock') ?? $product->stock,
             'brand' => $request->input('brand') ?? $product->brand,
+            'color' => $request->input('color') ?? $product->color,
             'status' => $request->input('status') ?? $product->status,
         ];
 

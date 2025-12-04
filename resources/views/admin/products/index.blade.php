@@ -47,6 +47,8 @@
                                             <th>Nombre</th>
                                             <th>Categoría</th>
                                             <th>Precio</th>
+                                            <th>Marca</th>
+                                            <th>Color</th>
                                             <th>Descripción</th>
                                             <th>Stock</th>
                                             <th>Acciones</th>
@@ -59,6 +61,8 @@
                                                 <td>{{ $prod->name }}</td>
                                                 <td>{{ $prod->category->name ?? '-' }}</td>
                                                 <td>s/.{{ number_format($prod->price, 2) }}</td>
+                                                <td>{{ $prod->brand }}</td>
+                                                <td>{{ $prod->color }}</td>
                                                 <td class="product-desc" title="{{ $prod->description }}">{{ \Illuminate\Support\Str::limit(strip_tags($prod->description), 100) }}</td>
                                                 <td>{{ $prod->stock }}</td>
                                                 <td>

@@ -5,14 +5,14 @@
 <div class="container-fluid">
     <div class="row g-0">
         <div class="col-12 col-md-3 px-0">
-            @include('settings.nav_cate')
+            @include('admin.partials.nav_cate')
         </div>
         <div id="settings-main" class="col-12 col-md-9 ps-md-1">
             <div class="bg-dark rounded-3 p-3">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h1 class="text-white mb-0">Pedidos</h1>
                     <div>
-                        <form id="ordersFilterForm" method="GET" action="{{ route('settings.orders.index') }}" class="d-flex align-items-center gap-2">
+                        <form id="ordersFilterForm" method="GET" action="{{ route('admin.orders.index') }}" class="d-flex align-items-center gap-2">
                             <select id="ordersStatusSelect" name="status" class="form-select form-select-sm" style="height:40px; min-width: 180px;" onchange="document.getElementById('ordersFilterForm').submit();">
                                 <option value="">Todos los estados</option>
                                 @foreach($availableStatuses ?? [] as $k => $label)
@@ -28,7 +28,7 @@
                             </select>
 
                             @if(request()->query('status') || request()->query('payment_method'))
-                                <a href="{{ route('settings.orders.index') }}" class="btn btn-sm btn-secondary">Limpiar</a>
+                                <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-secondary">Limpiar</a>
                             @endif
                         </form>
                     </div>
@@ -97,7 +97,7 @@
                                 <td><span class="badge bg-{{ $badge['class'] }} @if($badge['class']==='warning' || $badge['class']==='info') text-dark @endif">{{ $badge['label'] }}</span></td>
                                 <td>{{ $o->created_at->format('Y-m-d H:i') }}</td>
                                 <td>
-                                    <a href="{{ route('settings.orders.show', $o->id) }}" class="btn btn-sm btn-secondary">Ver</a>
+                                    <a href="{{ route('admin.orders.show', $o->id) }}" class="btn btn-sm btn-secondary">Ver</a>
                                     @php
                                         $xmlAvailable = false;
                                         if(!empty($o->invoice)){
@@ -125,13 +125,13 @@
                                         }
                                     @endphp
                                     @if($pdfAvailable)
-                                        <a href="{{ route('settings.orders.export_xml', $o->id) }}" class="btn btn-sm btn-outline-light ms-1" title="Exportar PDF">
+                                        <a href="{{ route('admin.orders.export_xml', $o->id) }}" class="btn btn-sm btn-outline-light ms-1" title="Exportar PDF">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 0h5.5L14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM9.5 1v3a1 1 0 0 0 1 1h3l-4-4z"/></svg>
                                         </a>
                                     @else
-                                        <a href="{{ route('settings.orders.generate_invoice_download', $o->id) }}" class="btn btn-sm btn-warning ms-1 generate-download-btn" data-order-id="{{ $o->id }}">Generar y descargar PDF</a>
+                                        <a href="{{ route('admin.orders.generate_invoice_download', $o->id) }}" class="btn btn-sm btn-warning ms-1 generate-download-btn" data-order-id="{{ $o->id }}">Generar y descargar PDF</a>
                                     @endif
-                                    <form action="{{ route('settings.orders.destroy', $o->id) }}" method="POST" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar pedido #{{ $o->id }}" data-confirm-message="¿Eliminar pedido #{{ $o->id }}? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
+                                    <form action="{{ route('admin.orders.destroy', $o->id) }}" method="POST" style="display:inline-block" class="needs-confirm" data-confirm-title="Eliminar pedido #{{ $o->id }}" data-confirm-message="¿Eliminar pedido #{{ $o->id }}? Esta acción no se puede deshacer." data-confirm-button="Eliminar">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-danger ms-1">Eliminar</button>

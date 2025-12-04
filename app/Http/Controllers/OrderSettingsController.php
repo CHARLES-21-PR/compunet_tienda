@@ -88,22 +88,22 @@ class OrderSettingsController extends Controller
             }
         }
 
-        return view('settings.orders.index', compact('orders', 'availableStatuses', 'availablePaymentMethods'));
+        return view('admin.orders.index', compact('orders', 'availableStatuses', 'availablePaymentMethods'));
     }
 
     public function show(\Illuminate\Http\Request $request, $id)
     {
         $order = Order::with(['items', 'payments', 'user'])->find($id);
         if (! $order) {
-            return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+            return redirect()->route('admin.orders.index')->with('error', 'Orden no encontrada');
         }
         $invoice = $order->invoice()->orderBy('id', 'desc')->first();
         // If the request is AJAX, return only the partial fragment (no layout) for modal display
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-            return view('settings.orders.partials.show', compact('order', 'invoice'));
+            return view('admin.orders.partials.show', compact('order', 'invoice'));
         }
 
-        return view('settings.orders.show', compact('order', 'invoice'));
+        return view('admin.orders.show', compact('order', 'invoice'));
     }
 
     /**
@@ -113,7 +113,7 @@ class OrderSettingsController extends Controller
     {
         $order = Order::find($id);
         if (! $order) {
-            return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+            return redirect()->route('admin.orders.index')->with('error', 'Orden no encontrada');
         }
 
         // Solo permitir los estados solicitados: por defecto 'paid' y los estados admin-editables
@@ -132,7 +132,7 @@ class OrderSettingsController extends Controller
         $order->status = $data['status'];
         $order->save();
 
-        return redirect()->route('settings.orders.show', $order->id)->with('success', 'Estado actualizado correctamente');
+        return redirect()->route('admin.orders.show', $order->id)->with('success', 'Estado actualizado correctamente');
     }
 
     /**
@@ -142,15 +142,15 @@ class OrderSettingsController extends Controller
     {
         $order = Order::find($id);
         if (! $order) {
-            return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+            return redirect()->route('admin.orders.index')->with('error', 'Orden no encontrada');
         }
 
         try {
             $order->delete();
 
-            return redirect()->route('settings.orders.index')->with('success', 'Pedido eliminado correctamente');
+            return redirect()->route('admin.orders.index')->with('success', 'Pedido eliminado correctamente');
         } catch (\Exception $e) {
-            return redirect()->route('settings.orders.index')->with('error', 'No se pudo eliminar el pedido');
+            return redirect()->route('admin.orders.index')->with('error', 'No se pudo eliminar el pedido');
         }
     }
 
@@ -161,12 +161,12 @@ class OrderSettingsController extends Controller
     {
         $order = Order::find($id);
         if (! $order) {
-            return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+            return redirect()->route('admin.orders.index')->with('error', 'Orden no encontrada');
         }
 
         // Only allow invoice generation for orders that are paid
         if (($order->status ?? '') !== 'pagado') {
-            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Solo se puede generar factura para pedidos con estado "pagado".');
+            return redirect()->route('admin.orders.show', $order->id)->with('error', 'Solo se puede generar factura para pedidos con estado "pagado".');
         }
 
         try {
@@ -175,17 +175,17 @@ class OrderSettingsController extends Controller
             if (! empty($res['success'])) {
                 // If the request intends to download immediately (non-AJAX fallback), redirect to export endpoint
                 if ($request->input('download')) {
-                    return redirect()->route('settings.orders.export_xml', $order->id);
+                    return redirect()->route('admin.orders.export_xml', $order->id);
                 }
 
-                return redirect()->route('settings.orders.show', $order->id)->with('success', 'Factura/Boleta generada: '.($res['invoice_number'] ?? 'OK'));
+                return redirect()->route('admin.orders.show', $order->id)->with('success', 'Factura/Boleta generada: '.($res['invoice_number'] ?? 'OK'));
             }
 
             $err = $res['error'] ?? ($res['provider_response']['body'] ?? json_encode($res));
 
-            return redirect()->route('settings.orders.show', $order->id)->with('error', 'No se pudo generar la factura: '.substr($err, 0, 300));
+            return redirect()->route('admin.orders.show', $order->id)->with('error', 'No se pudo generar la factura: '.substr($err, 0, 300));
         } catch (\Throwable $e) {
-            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Error al generar factura: '.$e->getMessage());
+            return redirect()->route('admin.orders.show', $order->id)->with('error', 'Error al generar factura: '.$e->getMessage());
         }
     }
 
@@ -229,7 +229,7 @@ class OrderSettingsController extends Controller
     {
         $order = Order::with('invoice')->find($orderId);
         if (! $order) {
-            return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+            return redirect()->route('admin.orders.index')->with('error', 'Orden no encontrada');
         }
 
         $invoice = $order->invoice;
@@ -245,7 +245,7 @@ class OrderSettingsController extends Controller
             }
         }
         if (! $invoice) {
-            return redirect()->route('settings.orders.index')->with('error', 'No existe factura asociada a este pedido');
+            return redirect()->route('admin.orders.index')->with('error', 'No existe factura asociada a este pedido');
         }
 
         $data = json_decode($invoice->data, true) ?: [];
@@ -376,7 +376,7 @@ class OrderSettingsController extends Controller
             return Storage::download($invoice->file_path, basename($invoice->file_path));
         }
 
-        return redirect()->route('settings.orders.index')->with('error', 'Documento no disponible para este pedido');
+        return redirect()->route('admin.orders.index')->with('error', 'Documento no disponible para este pedido');
     }
 
     /**
@@ -434,12 +434,12 @@ class OrderSettingsController extends Controller
     {
         $order = Order::find($id);
         if (! $order) {
-            return redirect()->route('settings.orders.index')->with('error', 'Orden no encontrada');
+            return redirect()->route('admin.orders.index')->with('error', 'Orden no encontrada');
         }
 
         // Only allow invoice generation for orders that are paid
         if (($order->status ?? '') !== 'pagado') {
-            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Solo se puede generar factura para pedidos con estado "pagado".');
+            return redirect()->route('admin.orders.show', $order->id)->with('error', 'Solo se puede generar factura para pedidos con estado "pagado".');
         }
 
         try {
@@ -447,9 +447,9 @@ class OrderSettingsController extends Controller
             $res = $invoiceService->createInvoice(['order_id' => $order->id]);
 
             // After creation, redirect to export endpoint which will try to serve PDF
-            return redirect()->route('settings.orders.export_xml', $order->id);
+            return redirect()->route('admin.orders.export_xml', $order->id);
         } catch (\Throwable $e) {
-            return redirect()->route('settings.orders.show', $order->id)->with('error', 'Error al generar factura: '.$e->getMessage());
+            return redirect()->route('admin.orders.show', $order->id)->with('error', 'Error al generar factura: '.$e->getMessage());
         }
     }
 }

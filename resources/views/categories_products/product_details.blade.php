@@ -2,7 +2,16 @@
 
     <div class="container py-5" style="background: #f3f3f3">
         <div class="product-details" style="width:100%;max-width:1100px;margin:0 auto; box-shadow:0 6px 20px rgba(0,0,0,0.06);">
+            <div style="margin-bottom:12px;">
+                        <a href="{{ url()->previous() }}" style="display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:9999px;background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,78,59,0.03));border:1px solid rgba(16,185,129,0.14);color:#064e3b;text-decoration:none;font-weight:600;box-shadow:0 8px 18px rgba(6,78,59,0.04);transition:transform .12s ease;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:translateX(-1px);">
+                                <path d="M15 18l-6-6 6-6" stroke="#064e3b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            Volver
+                        </a>
+                    </div>
             <div class="product-grid" style="display:flex;flex-wrap:wrap;">
+                
                 {{-- Left: gallery / image --}}
                 <div class="product-gallery" style="flex:1 1 420px;min-width:280px;">
                     @if($product->image)
@@ -17,6 +26,8 @@
 
                 {{-- Right: product info --}}
                 <div class="product-info" style="flex:1 1 360px;min-width:280px; background:#fff; padding:20px; border-radius:0 8px 8px 0; box-shadow:0 6px 18px rgba(0,0,0,0.04);">
+                    
+
                     <h1 style="font-size:1.6rem;margin-bottom:8px;color:#0b1220;">{{ $product->name }}</h1>
 
                     {{-- Rating and stock/info line --}}
@@ -86,7 +97,7 @@
             $related = collect();
             if($product->category) {
                 // obtener hasta 8 productos de la misma categoría excluyendo el actual
-                $related = $product->category->products()->where('id','<>',$product->id)->where('status',1)->take(8)->get();
+                $related = $product->category->products()->where('id','<>',$product->id)->where('status',1)->where('brand', $product->brand)->get();
             }
         @endphp
 
@@ -96,7 +107,7 @@
                 <div style="margin-bottom:8px;">
                     <span style="display:inline-block;background:#eef2ff;color:#3730a3;padding:6px 10px;border-radius:999px;font-weight:600;font-size:0.95rem;">{{ $product->category->name }}</span>
                 </div>
-                <h3 style="font-size:1.15rem;margin-bottom:12px;color:#0b1220;">Otros productos</h3>
+                <h3 style="font-size:1.15rem;margin-bottom:12px;color:#0b1220;">Otros productos de la misma marca</h3>
                 <div style="display:flex;flex-wrap:wrap;gap:16px;">
                     @foreach($related as $r)
                         <div style="width:calc(25% - 12px);min-width:180px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.03);overflow:hidden;">

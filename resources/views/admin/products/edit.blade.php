@@ -31,6 +31,8 @@
                             <input type="number" class="form-control" id="stock" name="stock" value="{{ $product->stock }}">
                             <label for="brand" class="form-label text-white">Marca</label>
                             <input type="text" class="form-control" id="brand" name="brand" value="{{ $product->brand }}">
+                            <label for="color" class="form-label text-white">Color</label>
+                            <input type="text" class="form-control" id="color" name="color" value="{{ $product->color }}">
                             <label for="image" class="form-label text-white">Imagen</label>
                             <input type="file" class="form-control" id="image" name="image">
                             <label for="status" class="form-label text-white">Estado</label>

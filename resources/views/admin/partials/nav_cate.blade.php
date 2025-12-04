@@ -7,10 +7,10 @@
     /* keep the sidebar full-height like before and stuck to the viewport */
    
     top: 1rem;
-    height: calc(100vh - 10rem);
+    height: 100vh;
     width: 240px; /* aumentar ligeramente para más separación */
     overflow: visible; /* allow the toggle to stick out */
-    margin: 1rem 0;
+    margin: 0 0 1rem 0;
   }
 
   /* Toggle button: inside when expanded, sticks out when collapsed */
