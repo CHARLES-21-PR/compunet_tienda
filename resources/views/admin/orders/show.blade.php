@@ -5,14 +5,14 @@
 <div class="container-fluid">
     <div class="row g-0">
         <div class="col-12 col-md-3 px-0">
-            @include('settings.nav_cate')
+            @include('admin.partials.nav_cate')
         </div>
         <div id="settings-main" class="col-12 col-md-9 ps-md-1">
             <div class="bg-dark rounded-3 p-3">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h1 class="text-white mb-0">Pedido #{{ $order->id }}</h1>
                     <div>
-                        <a href="{{ route('settings.orders.index') }}" class="btn btn-outline-light btn-sm">Volver</a>
+                        <a href="{{ route('admin.orders.index') }}" class="btn btn-outline-light btn-sm">Volver</a>
                     </div>
                 </div>
 
@@ -50,7 +50,7 @@
                             <li><strong>Creado:</strong> {{ $order->created_at->format('Y-m-d H:i') }}</li>
                         </ul>
 
-                        <form action="{{ route('settings.orders.update', $order->id) }}" method="POST" class="mt-3">
+                        <form action="{{ route('admin.orders.update', $order->id) }}" method="POST" class="mt-3">
                             @csrf
                             @method('PUT')
                             <div class="input-group">
@@ -102,7 +102,7 @@
                         @endif
 
                         {{-- Formulario para (re)generar factura --}}
-                        <form action="{{ route('settings.orders.generate_invoice', $order->id) }}" method="POST" class="mt-2">
+                        <form action="{{ route('admin.orders.generate_invoice', $order->id) }}" method="POST" class="mt-2">
                             @csrf
                             <button class="btn btn-sm btn-primary" type="submit">Generar / Re-generar factura</button>
                         </form>
@@ -128,7 +128,7 @@
                             <div class="mt-2">
                                 @foreach($savedFiles as $sf)
                                     @php $bn = basename($sf); $bn_noext = pathinfo($bn, PATHINFO_FILENAME); @endphp
-                                    <a href="{{ route('settings.invoices.download', $invoice->id) }}?file={{ urlencode($bn) }}" class="btn btn-sm btn-outline-primary me-1" title="Abrir {{ $bn_noext }}">{{ $bn_noext }}</a>
+                                    <a href="{{ route('admin.invoices.download', $invoice->id) }}?file={{ urlencode($bn) }}" class="btn btn-sm btn-outline-primary me-1" title="Abrir {{ $bn_noext }}">{{ $bn_noext }}</a>
                                 @endforeach
                             </div>
                         @endif
@@ -144,7 +144,7 @@
                             }
                         @endphp
                         @if($pdfAvailable)
-                            <a href="{{ route('settings.orders.export_xml', $order->id) }}" class="btn btn-sm btn-success mt-2" title="Exportar PDF">
+                            <a href="{{ route('admin.orders.export_xml', $order->id) }}" class="btn btn-sm btn-success mt-2" title="Exportar PDF">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 0h5.5L14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM9.5 1v3a1 1 0 0 0 1 1h3l-4-4z"/></svg>
                             </a>
                         @else

@@ -72,22 +72,16 @@
                 @foreach($orders as $order)
                     @php
                         $itemCount = $order->items->sum('quantity');
-                        $subtotal = $order->items->sum(function($it){ return ($it->price ?? 0) * ($it->quantity ?? 1); });
-                        $igv = $order->total_igv ?? null;
-                        $total = $order->total ?? ($subtotal + ($igv ?? 0));
                         
-                        if (empty($igv) || floatval($igv) == 0) {
-                            if (floatval($total) > 0) {
-                                $derivedSubtotal = round($total / 1.18, 2);
-                                $derivedIgv = round($total - $derivedSubtotal, 2);
-                            } else {
-                                $derivedSubtotal = $subtotal;
-                                $derivedIgv = 0;
-                            }
-                        } else {
-                            $derivedSubtotal = $subtotal;
-                            $derivedIgv = $igv;
-                        }
+                        // Calculate subtotal from items (Sum of Price * Qty)
+                        // We assume item price is the base price (e.g. 38.00)
+                        $subtotal = $order->items->sum(function($it){ return ($it->price ?? 0) * ($it->quantity ?? 1); });
+                        
+                        // Logic: Subtotal + IGV (18%) = Total
+                        $igvRate = 0.18;
+                        $derivedIgv = $subtotal * $igvRate;
+                        $derivedTotal = $subtotal + $derivedIgv;
+
                         $status = strtolower($order->status ?? 'pending');
                         $statusDefs = config('orders.statuses', []);
                         $def = $statusDefs[$status] ?? null;
@@ -159,7 +153,7 @@
                                                 <span class="text-muted">(+{{ $order->items->count() - 3 }} más)</span>
                                             @endif
                                         </div>
-                                        <div class="mt-2">Total: <strong>S/ {{ number_format($total,2) }}</strong></div>
+                                        <div class="mt-2">Total: <strong>S/ {{ number_format($derivedTotal,2) }}</strong></div>
                                         
                                     </div>
                                 </div>
@@ -237,7 +231,7 @@
                         <div class="border-t bg-gray-50 px-4 py-3 text-sm text-gray-600">
                                             <div class="flex items-center gap-4">
                                                 <div>Ítems: <strong>{{ $itemCount }}</strong></div>
-                                                <div>Subtotal: S/ {{ number_format($derivedSubtotal,2) }}</div>
+                                                <div>Subtotal: S/ {{ number_format($subtotal,2) }}</div>
                                                 <div>IGV: S/ {{ number_format($derivedIgv,2) }}</div>
                                             </div>
                                         </div>

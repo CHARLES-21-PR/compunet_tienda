@@ -151,16 +151,16 @@
                                 ->latest()->take(6)->get();
                         } elseif (\Illuminate\Support\Facades\Schema::hasTable('payments')) {
                             $pendingYape = \App\Models\Order::whereHas('payments', function($q){
-                                $q->where('method','yape')->whereIn('status',['pendiente','pending']);
-                            })->latest()->take(6)->get();
+                                $q->where('method','yape');
+                            })->whereIn('status',['pendiente','pending'])->latest()->take(6)->get();
                         }
                     }
                 } catch (\Throwable $e) {
                     $pendingYape = collect();
                 }
                 try {
-                    if (\Illuminate\Support\Facades\Schema::hasTable('products') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock_min')) {
-                        $lowStock = \App\Models\Product::whereColumn('stock','<','stock_min')->latest()->take(6)->get();
+                    if (\Illuminate\Support\Facades\Schema::hasTable('products') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock')) {
+                        $lowStock = \App\Models\Product::where('stock','<=', 5)->orderBy('stock', 'asc')->take(6)->get();
                     }
                 } catch (\Throwable $e) {
                     $lowStock = collect();
@@ -179,51 +179,76 @@
                     </span>
                 </button>
 
-                <div id="notif-dropdown" class="notif-dropdown" aria-hidden="true">
-                    <div class="notif-dropdown-header">
-                        <div class="title">Notificaciones</div>
-                        <div class="count">{{ $notifCount }}</div>
+                <div id="notif-dropdown" class="notif-dropdown shadow-lg rounded-4 border-0 overflow-hidden" aria-hidden="true" style="width: 320px; right: 0; left: auto;">
+                    <div class="notif-dropdown-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+                        <div class="fw-bold text-dark">Notificaciones</div>
+                        @if($notifCount > 0)
+                            <span class="badge bg-danger rounded-pill">{{ $notifCount }}</span>
+                        @endif
                     </div>
-                    <div class="notif-dropdown-body">
+                    <div class="notif-dropdown-body bg-light" style="max-height: 400px; overflow-y: auto;">
                         @if($pendingYape && $pendingYape->count())
-                            <div class="notif-section">
-                                <div class="notif-text">
-                                    @foreach($pendingYape as $o)
-                                        <div class="notif-item">
-                                            <div class="avatar">Y</div>
-                                            <div class="content">
-                                                <div class="title">Pedido #{{ $o->id }}</div>
-                                                <div class="meta">{{ optional($o->user)->name ?? optional($o->client)->name ?? 'Cliente' }} • {{ $o->created_at ? $o->created_at->diffForHumans() : '' }}</div>
+                            <div class="p-2">
+                                <div class="small text-muted fw-bold px-2 mb-2 text-uppercase" style="font-size: 0.7rem;">Validación de Pagos</div>
+                                @foreach($pendingYape as $o)
+                                    <a href="{{ route('admin.orders.show', ['order' => $o->id]) }}" class="d-block text-decoration-none text-dark mb-2">
+                                        <div class="card border-0 shadow-sm hover-shadow transition-all">
+                                            <div class="card-body p-2 d-flex align-items-center gap-3">
+                                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-phone" viewBox="0 0 16 16">
+                                                        <path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="fw-semibold small">Pedido #{{ $o->id }}</span>
+                                                        <span class="badge bg-warning text-dark" style="font-size: 0.6rem;">Pendiente</span>
+                                                    </div>
+                                                    <div class="small text-muted text-truncate">{{ optional($o->user)->name ?? optional($o->client)->name ?? 'Cliente' }}</div>
+                                                    <div class="small text-primary fw-bold">S/. {{ number_format($o->total, 2) }}</div>
+                                                </div>
                                             </div>
-                                            <div class="actions"><a href="{{ route('settings.orders.show', ['order' => $o->id]) }}">Ver</a></div>
                                         </div>
-                                    @endforeach
-                                </div>
+                                    </a>
+                                @endforeach
                             </div>
                         @endif
 
                         @if($lowStock && $lowStock->count())
-                            <div class="notif-section">
-                                <div class="notif-text">
-                                    @foreach($lowStock as $p)
-                                        <div class="notif-item">
-                                            <div class="avatar">{{ strtoupper(substr($p->name ?? 'P',0,1)) }}</div>
-                                            <div class="content">
-                                                <div class="title">{{ $p->name ?? 'Producto' }}</div>
-                                                <div class="meta">Stock: {{ $p->stock ?? 'N/A' }}</div>
+                            <div class="p-2">
+                                <div class="small text-muted fw-bold px-2 mb-2 text-uppercase" style="font-size: 0.7rem;">Alerta de Stock</div>
+                                @foreach($lowStock as $p)
+                                    <a href="{{ route('admin.products.edit', ['product' => $p->id]) }}" class="d-block text-decoration-none text-dark mb-2">
+                                        <div class="card border-0 shadow-sm hover-shadow transition-all">
+                                            <div class="card-body p-2 d-flex align-items-center gap-3">
+                                                <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; min-width: 40px;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
+                                                        <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-grow-1 min-w-0">
+                                                    <div class="fw-semibold small text-truncate">{{ $p->name ?? 'Producto' }}</div>
+                                                    <div class="small text-danger fw-bold">Quedan: {{ $p->stock ?? 'N/A' }}</div>
+                                                </div>
                                             </div>
-                                            <div class="actions"><a href="{{ route('admin.products.edit', ['product' => $p->id]) }}">Editar</a></div>
                                         </div>
-                                    @endforeach
-                                </div>
+                                    </a>
+                                @endforeach
                             </div>
                         @endif
 
                         @if((!$pendingYape || $pendingYape->isEmpty()) && (!$lowStock || $lowStock->isEmpty()))
-                            <div class="notif-empty">No hay notificaciones nuevas</div>
+                            <div class="text-center d-flex flex-column align-items-center justify-content-center py-4 text-muted">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-bell-slash mb-2 opacity-50" viewBox="0 0 16 16">
+                                    <path d="M5.164 14H15c-1.5-1-2-5.902-2-7 0-.264-.02-.523-.06-.776L5.164 14zm6.288-10.617A4.988 4.988 0 0 0 8.995 2.1a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 7c0 .898-.335 4.342-1.278 6.113l9.73-9.73zM10 15a2 2 0 1 1-4 0h4zm-9.375.625a.53.53 0 0 0 .75.75l14.75-14.75a.53.53 0 0 0-.75-.75L.625 15.625z"/>
+                                </svg>
+                                <p class="small mb-0">No hay notificaciones nuevas</p>
+                            </div>
                         @endif
                     </div>
-                    <div class="notif-dropdown-footer"><a href="{{ route('admin.notifications.index') }}">Ver todas</a></div>
+                    <div class="notif-dropdown-footer bg-white border-top p-2 text-center">
+                        <a href="{{ route('admin.notifications.index') }}" class="text-decoration-none small fw-bold text-primary">Ver todas las notificaciones</a>
+                    </div>
                 </div>
             </div>
             @endrole
@@ -231,14 +256,20 @@
             {{-- Cart --}}
             @php
                 $cartCount = 0;
-                $cart = session('cart', []);
-                if (is_array($cart)) {
-                    foreach ($cart as $item) {
-                        $cartCount += isset($item['quantity']) ? (int)$item['quantity'] : (isset($item->quantity) ? (int)$item->quantity : 1);
-                    }
-                } elseif (is_object($cart) && isset($cart->items) && is_array($cart->items)) {
-                    foreach ($cart->items as $item) {
-                        $cartCount += isset($item['quantity']) ? (int)$item['quantity'] : (isset($item->quantity) ? (int)$item->quantity : 1);
+                if (\Illuminate\Support\Facades\Auth::check()) {
+                    // Authenticated user: count from DB
+                    $cartCount = \App\Models\shoppingCart::where('user_id', \Illuminate\Support\Facades\Auth::id())->sum('quantity');
+                } else {
+                    // Guest: count from Session
+                    $cart = session('cart', []);
+                    if (is_array($cart)) {
+                        foreach ($cart as $item) {
+                            $cartCount += isset($item['quantity']) ? (int)$item['quantity'] : (isset($item->quantity) ? (int)$item->quantity : 1);
+                        }
+                    } elseif (is_object($cart) && isset($cart->items) && is_array($cart->items)) {
+                        foreach ($cart->items as $item) {
+                            $cartCount += isset($item['quantity']) ? (int)$item['quantity'] : (isset($item->quantity) ? (int)$item->quantity : 1);
+                        }
                     }
                 }
             @endphp

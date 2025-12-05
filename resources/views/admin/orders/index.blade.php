@@ -123,8 +123,20 @@
                                             if(!$pdfAvailable && !empty($o->invoice->file_path) && str_ends_with(strtolower($o->invoice->file_path), '.pdf')) $pdfAvailable = true;
                                             if(!$pdfAvailable && !empty($d['response']) && is_array($d['response'])){ $r = $d['response']; if(!empty($r['pdf_base64']) || !empty($r['enlace_del_pdf']) || !empty($r['enlace_pdf'])) $pdfAvailable = true; }
                                         }
+                                        
+                                        // Check if order is Yape to hide generation button
+                                        $isYape = false;
+                                        $pm = strtolower($o->payment_method ?? '');
+                                        if($pm === 'yape') $isYape = true;
+                                        if(!$isYape && $o->payments && $o->payments->isNotEmpty()){
+                                            foreach($o->payments as $p){
+                                                if(strtolower($p->method ?? '') === 'yape'){ $isYape = true; break; }
+                                            }
+                                        }
                                     @endphp
-                                    @if($pdfAvailable)
+                                    @if($isYape)
+                                        <button class="btn btn-sm btn-secondary ms-1" disabled title="No disponible para Yape">Sin comprobante</button>
+                                    @elseif($pdfAvailable)
                                         <a href="{{ route('admin.orders.export_xml', $o->id) }}" class="btn btn-sm btn-outline-light ms-1" title="Exportar PDF">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 0h5.5L14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM9.5 1v3a1 1 0 0 0 1 1h3l-4-4z"/></svg>
                                         </a>
@@ -201,14 +213,20 @@
             const headers = { 'Accept': 'application/json' };
             if (csrfMeta && csrfMeta.getAttribute('content')) headers['X-CSRF-TOKEN'] = csrfMeta.getAttribute('content');
 
-            fetch("{{ url('/settings/orders') }} "+"/"+orderId+"/invoice/ajax", {
+            fetch("{{ url('/settings/orders') }}"+"/"+orderId+"/invoice/ajax", {
                 method: 'POST',
                 headers: headers,
                 credentials: 'same-origin'
             }).then(r => {
                 if (!r.ok) {
-                    
-                    return r.text().then(t => { throw new Error('HTTP ' + r.status + ': ' + (t || r.statusText)); });
+                    return r.text().then(t => {
+                        let msg = t;
+                        try {
+                            const json = JSON.parse(t);
+                            if (json.message) msg = json.message;
+                        } catch(e) {}
+                        throw new Error(msg);
+                    });
                 }
                 const ct = r.headers.get('Content-Type') || '';
                 if (ct.includes('application/json')) return r.json();
@@ -286,7 +304,9 @@
                     }
             }).catch(err=>{
                 console.error('Error al generar factura (AJAX):', err);
-                showAlertOrders('Error', 'Error al generar factura: ' + (err.message || 'Error de red'));
+                let msg = err.message || 'Error de red';
+                if (msg.startsWith('Error: ')) msg = msg.substring(7);
+                showAlertOrders('Error', msg);
                 btn.disabled = false; btn.textContent = 'Generar y descargar PDF';
             });
         });

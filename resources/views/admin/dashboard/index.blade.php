@@ -246,7 +246,7 @@
                                                 <div class="mt-2 d-flex justify-content-between align-items-center">
                                                     <div class="small text-white-50">Items: {{ optional($r->items)->count() ?? '-' }}</div>
                                                         <div>
-                                                        <a href="{{ route('settings.orders.show', $r) }}" class="btn btn-sm btn-outline-light order-view" data-url="{{ route('settings.orders.show', $r) }}">Ver</a>
+                                                        <a href="{{ route('admin.orders.show', $r) }}" class="btn btn-sm btn-outline-light order-view" data-url="{{ route('admin.orders.show', $r) }}">Ver</a>
                                                     </div>
                                                 </div>
                                             </div>

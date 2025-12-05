@@ -61,6 +61,11 @@ Route::post('/shopping-cart/remove', [\App\Http\Controllers\ShoppingCartControll
 // Preparar checkout con items seleccionados
 Route::post('/shopping-cart/checkout-selected', [\App\Http\Controllers\ShoppingCartController::class, 'checkoutSelected'])->name('shopping_carts.checkout_selected');
 
+// Ruta temporal de depuración: devuelve el contenido de la sesión 'cart' en JSON
+Route::get('/debug/session-cart', function () {
+    return response()->json(session('cart', []));
+});
+
 Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(function () {
     Route::get('/settings/categories', [CategorySettingsController::class, 'index'])->name('admin.categories.index');
 

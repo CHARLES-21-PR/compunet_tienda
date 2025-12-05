@@ -21,8 +21,8 @@ class NotificationController extends Controller
                 } elseif (\Illuminate\Support\Facades\Schema::hasTable('payments') && \Illuminate\Support\Facades\Schema::hasColumn('payments', 'method') && \Illuminate\Support\Facades\Schema::hasColumn('payments', 'status')) {
                     // Orders may not store payment_method; find orders that have a related payment with method=yape and status in both Spanish/English variants
                     $pendingYape = \App\Models\Order::whereHas('payments', function ($q) {
-                        $q->where('method', 'yape')->whereIn('status', ['pendiente', 'pending']);
-                    })->orderBy('created_at', 'desc')->get();
+                        $q->where('method', 'yape');
+                    })->whereIn('status', ['pendiente', 'pending'])->orderBy('created_at', 'desc')->get();
                 }
             }
 

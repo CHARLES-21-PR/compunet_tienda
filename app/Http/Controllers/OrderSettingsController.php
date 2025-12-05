@@ -169,6 +169,22 @@ class OrderSettingsController extends Controller
             return redirect()->route('admin.orders.show', $order->id)->with('error', 'Solo se puede generar factura para pedidos con estado "pagado".');
         }
 
+        $isYape = false;
+        if (strtolower($order->payment_method ?? '') === 'yape') {
+            $isYape = true;
+        } elseif ($order->payments && $order->payments->isNotEmpty()) {
+            foreach($order->payments as $p) {
+                if (strtolower($p->method ?? '') === 'yape') {
+                    $isYape = true;
+                    break;
+                }
+            }
+        }
+
+        if ($isYape) {
+            return redirect()->route('admin.orders.show', $order->id)->with('error', 'No se puede generar comprobante con el método de pago Yape.');
+        }
+
         try {
             $invoiceService = app(\App\Services\InvoiceService::class);
             $res = $invoiceService->createInvoice(['order_id' => $order->id]);
@@ -394,6 +410,22 @@ class OrderSettingsController extends Controller
             return response()->json(['success' => false, 'message' => 'Solo se puede generar factura para pedidos con estado "pagado".'], 422);
         }
 
+        $isYape = false;
+        if (strtolower($order->payment_method ?? '') === 'yape') {
+            $isYape = true;
+        } elseif ($order->payments && $order->payments->isNotEmpty()) {
+            foreach($order->payments as $p) {
+                if (strtolower($p->method ?? '') === 'yape') {
+                    $isYape = true;
+                    break;
+                }
+            }
+        }
+
+        if ($isYape) {
+            return response()->json(['success' => false, 'message' => 'No se puede generar comprobante con el método de pago Yape.'], 400);
+        }
+
         try {
             $invoiceService = app(\App\Services\InvoiceService::class);
             $res = $invoiceService->createInvoice(['order_id' => $order->id]);
@@ -440,6 +472,22 @@ class OrderSettingsController extends Controller
         // Only allow invoice generation for orders that are paid
         if (($order->status ?? '') !== 'pagado') {
             return redirect()->route('admin.orders.show', $order->id)->with('error', 'Solo se puede generar factura para pedidos con estado "pagado".');
+        }
+
+        $isYape = false;
+        if (strtolower($order->payment_method ?? '') === 'yape') {
+            $isYape = true;
+        } elseif ($order->payments && $order->payments->isNotEmpty()) {
+            foreach($order->payments as $p) {
+                if (strtolower($p->method ?? '') === 'yape') {
+                    $isYape = true;
+                    break;
+                }
+            }
+        }
+
+        if ($isYape) {
+            return redirect()->route('admin.orders.show', $order->id)->with('error', 'No se puede generar comprobante con el método de pago Yape.');
         }
 
         try {

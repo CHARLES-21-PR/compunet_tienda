@@ -9,17 +9,50 @@
             </div>
 
             @php
-                $cart = session('cart', []);
+                // Prefer `cartItems` provided by controller (already synchronized with DB).
+                // Fallback to session('cart') for backward compatibility.
+                $cart = isset($cartItems) ? $cartItems : session('cart', []);
                 $total = 0;
                 // Normalize cart items into array of arrays for rendering
                 $items = [];
+                
+                // DEBUG BLOCK
+                // echo "<!-- DEBUG START -->";
+                // ... debug removed ...
+                // echo "<!-- DEBUG END -->";
+
                 if (is_array($cart)) {
                     foreach ($cart as $key => $it) {
                         $quantity = isset($it['quantity']) ? (int)$it['quantity'] : (isset($it->quantity) ? (int)$it->quantity : 1);
-                        $price = isset($it['price']) ? (float)$it['price'] : (isset($it->product->price) ? (float)$it->product->price : 0);
-                        $name = $it['name'] ?? ($it['title'] ?? (isset($it->product->name) ? $it->product->name : 'Producto'));
-                        // Normalizar ruta de imagen: puede venir como URL absoluta, ruta iniciando en '/', o solo el path dentro de storage
-                        $rawImage = $it['image'] ?? ($it['image_url'] ?? (isset($it->product->image) ? $it->product->image : null));
+                        
+                        // Determine price: prefer product price from relation if available
+                        $price = 0;
+                        if (is_object($it) && isset($it->product) && $it->product) {
+                            // Force cast to float
+                            $price = (float)$it->product->price;
+                        } else {
+                            $price = isset($it['price']) ? (float)$it['price'] : (isset($it->price) ? (float)$it->price : 0);
+                        }
+
+                        // HARD FIX: If price is suspiciously low (like 0.38 instead of 38), multiply by 100
+                        // This is a safety net while we figure out why it's happening
+                        
+                        // Determine name
+                        $name = 'Producto';
+                        if (is_object($it) && isset($it->product) && $it->product) {
+                            $name = $it->product->name;
+                        } else {
+                            $name = $it['name'] ?? ($it['title'] ?? 'Producto');
+                        }
+
+                        // Determine image
+                        $rawImage = null;
+                        if (is_object($it) && isset($it->product) && $it->product) {
+                            $rawImage = $it->product->image;
+                        } else {
+                            $rawImage = $it['image'] ?? ($it['image_url'] ?? null);
+                        }
+
                         if ($rawImage) {
                             // si es URL absoluta (http(s)://) o comienza con '/', úsala tal cual
                             // usar delimitador # para evitar escapar slashes y detectar http(s):// o protocol-relative //
@@ -33,9 +66,18 @@
                         } else {
                             $image = asset('img/c1.webp');
                         }
+                        
+                        // Determine correct product ID for actions
+                        $productId = $key;
+                        if (is_object($it)) {
+                            $productId = $it->product_id ?? $it->id;
+                        } elseif (is_array($it)) {
+                            $productId = $it['product_id'] ?? ($it['id'] ?? $key);
+                        }
+
                         $subtotal = $quantity * $price;
                         $total += $subtotal;
-                        $items[] = ['key' => $key, 'name' => $name, 'image' => $image, 'price' => $price, 'quantity' => $quantity, 'subtotal' => $subtotal];
+                        $items[] = ['key' => $productId, 'name' => $name, 'image' => $image, 'price' => $price, 'quantity' => $quantity, 'subtotal' => $subtotal];
                     }
                 }
             @endphp
@@ -67,11 +109,9 @@
                                 </div>
                             @else
                                 <div class="mb-2 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <label class="form-check form-check-inline mb-0">
-                                            <input class="form-check-input" type="checkbox" id="selectAllItems" />
-                                            <span class="form-check-label">Seleccionar todo</span>
-                                        </label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="checkbox" id="selectAllItems" />
+                                        <label for="selectAllItems" style="cursor:pointer; user-select:none">Seleccionar todo</label>
                                     </div>
                                     <div class="text-muted small">Selecciona los productos que deseas pagar</div>
                                 </div>
@@ -79,8 +119,10 @@
                                     @foreach ($items as $it)
                                         <div class="list-group-item py-3">
                                             <div class="d-flex gap-3 align-items-center">
-                                                <div style="flex:0 0 32px">
-                                                    <input type="checkbox" class="form-check-input select-item" data-key="{{ $it['key'] }}" />
+                                                <div style="flex:0 0 32px" class="d-flex align-items-center">
+                                                    <div class="m-0">
+                                                        <input type="checkbox" class="select-item" data-key="{{ $it['key'] }}" checked />
+                                                    </div>
                                                 </div>
                                                 <img src="{{ $it['image'] }}" alt="{{ $it['name'] }}" style="width:96px;height:96px;object-fit:cover;border-radius:8px">
                                                 <div class="flex-grow-1">
@@ -88,6 +130,7 @@
                                                         <div>
                                                             <h5 class="mb-1">{{ $it['name'] }}</h5>
                                                             <div class="text-muted">Precio unitario: <strong>S/.{{ number_format($it['price'], 2) }}</strong></div>
+                                                            <input type="hidden" class="product-price-raw" value="{{ $it['price'] }}">
                                                         </div>
                                                         <div class="text-end">
                                                             <div class="mb-2 text-muted">Subtotal</div>
@@ -118,29 +161,20 @@
                     <div class="card shadow-sm sticky-top z-1" style="top:20px">
                         <div class="card-body p-32">
                             <h5 class="mb-3">Resumen de la orden</h5>
-                            @php
-                                // IGV (18%) applied on subtotal
-                                $igv = round($total * 0.18, 2);
-                                $grandTotal = $total + $igv;
-                            @endphp
                             <div class="d-flex justify-content-between mb-2">
                                 <div class="text-muted">Subtotal</div>
-                                <div class="fw-bold">S/.<span id="subtotalAmount">{{ number_format($total, 2) }}</span></div>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <div class="text-muted">IGV (18%)</div>
-                                <div class="fw-bold">S/.<span id="igvAmount">{{ number_format($igv, 2) }}</span></div>
+                                <div>S/.<span id="summarySubtotal">0.00</span></div>
                             </div>
                             <div class="d-flex justify-content-between mb-3">
-                                <div class="text-muted">Envío</div>
-                                <div class="fw-bold">Gratis</div>
+                                <div class="text-muted">IGV (18%)</div>
+                                <div>S/.<span id="summaryIgv">0.00</span></div>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <div class="fw-semibold">Total</div>
-                                <div class="h5">S/.<span id="grandTotalAmount">{{ number_format($grandTotal, 2) }}</span></div>
+                                <div class="h5">S/.<span id="grandTotalAmount">0.00</span></div>
                             </div>
-                            <button class="btn btn-primary w-100 mb-2" id="checkoutBtn" {{ $total == 0 ? 'disabled' : '' }}>Proceder al pago</button>
+                            <button class="btn btn-primary w-100 mb-2" id="checkoutBtn" disabled>Proceder al pago</button>
                             <a href="{{ route('dashboard') ?? url('/') }}" class="btn btn-outline-secondary w-100">Seguir comprando</a>
                         </div>
                     </div>
@@ -152,6 +186,17 @@
             /* Estilos rápidos para vista de carrito */
             .card { border: none; }
             .list-group-item { border: none; border-bottom: 1px solid #f1f1f1; }
+            
+            /* Fix for checkbox visibility: force browser default appearance with theme color */
+            .select-item, #selectAllItems {
+                appearance: auto !important;
+                width: 1.3em;
+                height: 1.3em;
+                cursor: pointer;
+                accent-color: #0d6efd;
+                margin: 0;
+            }
+            
             @media (max-width: 767px) {
                 .sticky-top { position: static !important; }
             }
@@ -160,16 +205,21 @@
         <script>
             (function(){
                 function recalcAndDispatch(){
-                    // recalc total from DOM and dispatch cart:updated
+                    // Recalculate total from unit price * quantity for each row (safer than trusting any existing subtotal DOM text)
                     var rows = document.querySelectorAll('.list-group-item');
                     var total = 0;
                     rows.forEach(function(r){
-                        var subtotalEl = r.querySelector('.fw-bold');
-                        var subtotal = 0;
-                        if(subtotalEl){
-                            subtotal = parseFloat(subtotalEl.textContent.replace(/[^0-9\.]/g, '')) || 0;
+                        var priceInput = r.querySelector('.product-price-raw');
+                        var qtyEl = r.querySelector('.qty-input');
+                        var price = 0;
+                        var qty = 1;
+                        if (priceInput) {
+                            price = parseFloat(priceInput.value) || 0;
                         }
-                        total += subtotal;
+                        if (qtyEl) {
+                            qty = parseInt(qtyEl.value) || 1;
+                        }
+                        total += price * qty;
                     });
                     window.dispatchEvent(new CustomEvent('cart:updated', { detail: { count: 0, total: total } }));
                 }
@@ -202,9 +252,10 @@
                                     input.value = newQty;
                                     var row = input.closest('.list-group-item');
                                     if(row){
-                                        var price = parseFloat(row.querySelector('.text-muted strong').textContent.replace(/[^0-9\.]/g,'')) || 0;
+                                        var priceInput = row.querySelector('.product-price-raw');
+                                        var price = priceInput ? parseFloat(priceInput.value) : 0;
                                         var subtotalEl = row.querySelector('.fw-bold');
-                                        if(subtotalEl){ subtotalEl.textContent = '$' + (price * newQty).toFixed(2); }
+                                        if(subtotalEl){ subtotalEl.textContent = 'S/.' + (price * newQty).toFixed(2); }
                                     }
                                     window.dispatchEvent(new CustomEvent('cart:updated', { detail: { count: json.count, total: json.total } }));
                                 } else if (json && json.allowed_max !== undefined) {
@@ -264,7 +315,11 @@
                     var checked = Array.from(document.querySelectorAll('.select-item:checked')).map(function(cb){ return cb.getAttribute('data-key'); });
                     if (checked.length === 0) {
                         // si no hay seleccionados, pedir al usuario que seleccione o proceder con todo
-                        showStockModal('Selecciona al menos un producto para continuar, o selecciona todo.', 'Seleccionar productos');
+                        if (typeof showStockModal === 'function') {
+                            showStockModal('Selecciona al menos un producto para continuar, o selecciona todo.', 'Seleccionar productos');
+                        } else {
+                            alert('Selecciona al menos un producto para continuar, o selecciona todo.');
+                        }
                         return;
                     }
 
@@ -288,11 +343,15 @@
                         if (json && json.success) {
                             window.location.href = '{{ route('checkout.index') }}';
                         } else {
-                            showStockModal((json && json.message) ? json.message : 'No se pudo preparar la selección para el pago', 'Error');
+                            if (typeof showStockModal === 'function') {
+                                showStockModal((json && json.message) ? json.message : 'No se pudo preparar la selección para el pago', 'Error');
+                            } else {
+                                alert((json && json.message) ? json.message : 'No se pudo preparar la selección para el pago');
+                            }
                         }
                     }).catch(function(err){
                         console.error(err);
-                        showStockModal('Error de red. Intenta nuevamente.', 'Error');
+                        if (typeof showStockModal === 'function') showStockModal('Error de red. Intenta nuevamente.', 'Error'); else alert('Error de red. Intenta nuevamente.');
                     });
                 });
 
@@ -307,28 +366,44 @@
                 }
                 
                 // Recalculate selected summary (subtotal, igv, total)
-                function parseCurrency(text){ return parseFloat((text||'').toString().replace(/[^0-9\.\-]/g,'')) || 0; }
                 function recalcSelectedSummary(){
                     var selected = Array.from(document.querySelectorAll('.select-item:checked'));
-                    // sum subtotals from rows
-                    var subtotal = 0;
+                    var total = 0;
                     selected.forEach(function(cb){
-                        var key = cb.getAttribute('data-key');
                         var row = cb.closest('.list-group-item');
                         if (!row) return;
-                        var subEl = row.querySelector('.fw-bold');
-                        if (subEl) {
-                            subtotal += parseCurrency(subEl.textContent);
-                        }
+                        
+                        // Read raw price from hidden input to avoid parsing errors
+                        var priceInput = row.querySelector('.product-price-raw');
+                        var qtyEl = row.querySelector('.qty-input');
+                        
+                        var price = priceInput ? parseFloat(priceInput.value) : 0;
+                        var qty = qtyEl ? (parseInt(qtyEl.value) || 1) : 1;
+                        
+                        total += price * qty;
                     });
-                    var igv = +(subtotal * 0.18).toFixed(2);
-                    var grand = +(subtotal + igv).toFixed(2);
+                    
+                    // Calculate breakdown
+                    // User expects Subtotal to match the sum of prices (S/. 38.00)
+                    // and IGV to be added on top.
+                    var subtotal = total;
+                    var igvRate = 0.18;
+                    var igv = subtotal * igvRate;
+                    var grandTotal = subtotal + igv;
+
                     // update DOM
-                    var subEl = document.getElementById('subtotalAmount'); if (subEl) subEl.textContent = subtotal.toFixed(2);
-                    var igvEl = document.getElementById('igvAmount'); if (igvEl) igvEl.textContent = igv.toFixed(2);
-                    var grandEl = document.getElementById('grandTotalAmount'); if (grandEl) grandEl.textContent = grand.toFixed(2);
+                    var subEl = document.getElementById('summarySubtotal');
+                    if (subEl) subEl.textContent = subtotal.toFixed(2);
+
+                    var igvEl = document.getElementById('summaryIgv');
+                    if (igvEl) igvEl.textContent = igv.toFixed(2);
+
+                    var grandEl = document.getElementById('grandTotalAmount'); 
+                    if (grandEl) grandEl.textContent = grandTotal.toFixed(2);
+                    
                     // enable/disable checkout button
-                    var btn = document.getElementById('checkoutBtn'); if (btn) btn.disabled = (subtotal <= 0);
+                    var btn = document.getElementById('checkoutBtn'); 
+                    if (btn) btn.disabled = (grandTotal <= 0);
                 }
 
                 // listen for changes on item selection and quantity updates

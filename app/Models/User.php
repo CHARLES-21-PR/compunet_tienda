@@ -48,6 +48,14 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the shopping cart items for the user.
+     */
+    public function shoppingCartItems()
+    {
+        return $this->hasMany(shoppingCart::class, 'user_id');
+    }
+
     public function isAdmin(): bool
     {
         // If Spatie trait is available use it

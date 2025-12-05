@@ -12,6 +12,15 @@
             .pay-method { border:1px solid #e6e7eb; padding:8px 12px; border-radius:8px; cursor:pointer }
             .pay-method input { margin-right:8px }
             .summary-item { display:flex; align-items:center; gap:10px }
+            
+            /* Fix for radio button visibility: force browser default appearance */
+            .form-check-input[type="radio"] {
+                appearance: auto !important;
+                width: 1.1em;
+                height: 1.1em;
+                accent-color: #0d6efd;
+                cursor: pointer;
+            }
         </style>
 
         <div class="row mb-4">
@@ -202,6 +211,7 @@
                     <div class="card-body">
                         <h6 class="card-title">Resumen de pedido</h6>
                         <div class="mt-3">
+                            {{-- Debug block removed: server provides normalized prices --}}
                             @php
                                 // Ensure $items is populated; fallback to session('cart') if controller didn't pass items
                                 if (empty($items) || !is_iterable($items)) {
@@ -240,6 +250,7 @@
                                             } else {
                                                 $image = asset('img/c1.webp');
                                             }
+                                            // Use server-provided price (assumed normalized)
                                             $items[] = ['name' => $name, 'image' => $image, 'price' => $price, 'quantity' => $quantity, 'subtotal' => $quantity * $price];
                                         }
                                     }
@@ -296,7 +307,7 @@
                                                 $imgUrl = asset('storage/' . $imgClean);
                                             }
                                         }
-                                    @endphp
+                                            @endphp
                                     @if($imgUrl)
                                         <img src="{{ $imgUrl }}" class="product-thumb" alt="" onerror="this.onerror=null;this.src='{{ asset('img/c1.webp') }}';">
                                     @else
@@ -304,9 +315,13 @@
                                     @endif
                                     <div style="flex:1;">
                                         <div class="small mb-1">{{ Str::limit($displayName ?? 'Producto', 40) }}</div>
-                                        <div class="text-muted small">{{ $displayQty }} × S/.{{ number_format($displayPrice,2) }}</div>
+                                        @php
+                                            $renderPrice = $displayPrice;
+                                            $renderSubtotal = $displaySubtotal ?? ($displayQty * $renderPrice);
+                                        @endphp
+                                        <div class="text-muted small">{{ $displayQty }} × S/.{{ number_format($renderPrice ?? 0,2) }}</div>
                                     </div>
-                                    <div class="fw-semibold">S/.{{ number_format($displaySubtotal ?? 0,2) }}</div>
+                                    <div class="fw-semibold">S/.{{ number_format($renderSubtotal ?? ($displaySubtotal ?? 0),2) }}</div>
                                 </div>
                             @endforeach
                         </div>
@@ -316,9 +331,13 @@
                             $viewSubtotal = 0;
                             foreach ($items as $it) {
                                 if (is_array($it)) {
-                                    $viewSubtotal += ($it['subtotal'] ?? (($it['price'] ?? 0) * ($it['quantity'] ?? 1)));
+                                    $price = $it['price'] ?? 0;
+                                    $qty = $it['quantity'] ?? 1;
+                                    $viewSubtotal += ($it['subtotal'] ?? ($price * $qty));
                                 } else {
-                                    $viewSubtotal += (($it->price ?? 0) * ($it->quantity ?? 1));
+                                    $price = ($it->price ?? 0);
+                                    $qty = ($it->quantity ?? 1);
+                                    $viewSubtotal += ($price * $qty);
                                 }
                             }
                             $viewIgv = round($viewSubtotal * 0.18, 2);
