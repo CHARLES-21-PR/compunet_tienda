@@ -309,6 +309,7 @@
 
   /* Hide admin name and profile link when collapsed to avoid overlap */
   #settingsSidebarPanel.sidebar-collapsed .sidebar-user,
+  #settingsSidebarPanel.sidebar-collapsed .sidebar-role,
   #settingsSidebarPanel.sidebar-collapsed .text-muted.small { display: none !important; }
 
   /* Hide the textual labels when collapsed so icons are centered */
@@ -469,7 +470,11 @@
     foreach($parts as $p) { $initials .= strtoupper(substr($p,0,1)); if(strlen($initials)>=2) break; }
   @endphp
     <div class="d-flex align-items-center mb-3 position-relative">
-    <div class="sidebar-avatar">{{ $initials }}</div>
+    
+      <div class="sidebar-avatar flex-shrink-0">{{ $initials }}</div>
+      <div class="ms-2 flex-grow-1 sidebar-role">
+        {{ auth()->user()->role }}
+      </div>
     
       
     <div class="ms-auto">

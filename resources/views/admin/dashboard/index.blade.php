@@ -128,21 +128,132 @@
                         <h2 class="h5 text-white mb-3">Pedidos recientes y estadísticas</h2>
                          <div style="margin-top:14px;">
                         
-                            <div style="background: rgba(255,255,255,0.02); padding:0 16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);" class="mt-3">
-                            <strong class="text-white">Pedidos por día</strong>
-                            <div class="d-flex flex-wrap mt-2" style="gap:8px;">
-                                @if(!empty($ordersCountByDay) && $ordersCountByDay->count())
-                                    @foreach($ordersCountByDay as $date => $count)
-                                        <div style="background: linear-gradient(135deg,#475569,#0f172a); padding:8px 12px; border-radius:10px; min-width:110px; color:white; border:1px solid rgba(255,255,255,0.03);">
-                                            <div class="small" style="opacity:0.9">{{ $date }}</div>
-                                            <div class="h5 mb-0">{{ $count }}</div>
+                            <div style="background: rgba(255,255,255,0.02); padding:16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);" class="mt-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <strong class="text-white">Productos Vendidos</strong>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <select id="chart-client-select" class="form-select form-select-sm bg-light text-dark border-secondary" style="width: auto; max-width: 200px;">
+                                            <option value="">Todos los clientes</option>
+                                            @if(!empty($clients))
+                                                @foreach($clients as $user)
+                                                    <option value="{{ $user->id }}" {{ request('client_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-light active" onclick="updateChart('day', this)">Día</button>
+                                            <button type="button" class="btn btn-outline-light" onclick="updateChart('month', this)">Mes</button>
+                                            <button type="button" class="btn btn-outline-light" onclick="updateChart('year', this)">Año</button>
                                         </div>
-                                    @endforeach
-                                @else
-                                    <div class="text-white-50 small">No hay datos para las fechas seleccionadas.</div>
-                                @endif
+                                    </div>
+                                </div>
+                                <div style="height: 300px;">
+                                    <canvas id="ordersChart"></canvas>
+                                </div>
                             </div>
-                         </div>
+
+                            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const ctx = document.getElementById('ordersChart').getContext('2d');
+                                    
+                                    // Prepare data from PHP
+                                    const dataDay = @json($ordersCountByDay);
+                                    const dataMonth = @json($ordersCountByMonth);
+                                    const dataYear = @json($ordersCountByYear);
+
+                                    let currentChart = null;
+
+                                    function renderChart(labels, data, label) {
+                                        if (currentChart) {
+                                            currentChart.destroy();
+                                        }
+
+                                        currentChart = new Chart(ctx, {
+                                            type: 'bar',
+                                            data: {
+                                                labels: labels,
+                                                datasets: [{
+                                                    label: label,
+                                                    data: data,
+                                                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                                                    borderColor: 'rgba(59, 130, 246, 1)',
+                                                    borderWidth: 1
+                                                }]
+                                            },
+                                            options: {
+                                                responsive: true,
+                                                maintainAspectRatio: false,
+                                                scales: {
+                                                    y: {
+                                                        beginAtZero: true,
+                                                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                                        ticks: { 
+                                                            color: '#fff',
+                                                            stepSize: 1,
+                                                            precision: 0
+                                                        }
+                                                    },
+                                                    x: {
+                                                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                                        ticks: { color: '#fff' }
+                                                    }
+                                                },
+                                                plugins: {
+                                                    legend: { labels: { color: '#fff' } }
+                                                }
+                                            }
+                                        });
+                                    }
+
+                                    window.updateChart = function(type, btn) {
+                                        if (btn) {
+                                            document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+                                            btn.classList.add('active');
+                                        }
+
+                                        let source = {};
+                                        let label = '';
+                                        
+                                        if (type === 'day') {
+                                            source = dataDay;
+                                            label = 'Productos Vendidos por Día';
+                                        } else if (type === 'month') {
+                                            source = dataMonth;
+                                            label = 'Productos Vendidos por Mes';
+                                        } else {
+                                            source = dataYear;
+                                            label = 'Productos Vendidos por Año';
+                                        }
+
+                                        const labels = Object.keys(source);
+                                        const values = Object.values(source);
+                                        
+                                        renderChart(labels, values, label);
+                                    };
+
+                                    // Initial render
+                                    // Check if dataDay is empty, if so, maybe default to month?
+                                    // But let's stick to day as default.
+                                    const dayBtn = document.querySelector('.btn-group .btn:first-child');
+                                    updateChart('day', dayBtn);
+
+                                    // Client select listener
+                                    const clientSelect = document.getElementById('chart-client-select');
+                                    if (clientSelect) {
+                                        clientSelect.addEventListener('change', function() {
+                                            const val = this.value;
+                                            const url = new URL(window.location.href);
+                                            if (val) {
+                                                url.searchParams.set('client_id', val);
+                                            } else {
+                                                url.searchParams.delete('client_id');
+                                            }
+                                            window.location.href = url.toString();
+                                        });
+                                    }
+                                });
+                            </script>
                         {{-- Orders widget --}}
                        <div style="background: rgba(255,255,255,0.02); padding:0 16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);">
                             
@@ -164,22 +275,6 @@
                      id="end_date"
                      value="{{ $end ?? request('end_date') ?? now()->format('Y-m-d') }}"
                      class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" style="background:#ffffff; color:#0f172a;">
-        </div>
-
-        <div class="flex flex-col min-w-[200px]">
-            <label for="client_id" class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Usuario / Cliente</label>
-                <select name="client_id" 
-                    id="client_id" 
-         class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" style="background:#fff; color:#0f172a;">
-                <option value="">-- Todos los usuarios --</option>
-                @if(!empty($clients))
-                    @foreach($clients as $user)
-                        <option value="{{ $user->id }}" {{ request('client_id') == $user->id ? 'selected' : '' }}>
-                            {{ $user->name }}
-                        </option>
-                    @endforeach
-                @endif
-            </select>
         </div>
 
         <div class="d-flex" style="gap:8px;">

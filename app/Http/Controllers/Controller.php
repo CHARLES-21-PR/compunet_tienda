@@ -102,10 +102,11 @@ class Controller extends BaseController
                 // no-op
             }
 
-            // Aggregation: orders count per day within range
-            $ordersCountQuery = \App\Models\Order::selectRaw('DATE(created_at) as date, count(*) as count')
-                ->whereDate('created_at', '>=', $start)
-                ->whereDate('created_at', '<=', $end)
+            // Aggregation: products sold per day within range
+            $ordersCountQuery = \App\Models\OrderItem::selectRaw('DATE(orders.created_at) as date, sum(order_items.quantity) as count')
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->whereDate('orders.created_at', '>=', $start)
+                ->whereDate('orders.created_at', '<=', $end)
                 ->groupBy('date')
                 ->orderBy('date', 'desc');
 
@@ -113,9 +114,9 @@ class Controller extends BaseController
             $clientName = $request->query('client_name') ?? $request->query('user_name');
             $clientId = $request->query('client_id') ?? $request->query('user_id');
             if (! empty($clientId)) {
-                $ordersCountQuery->where('user_id', $clientId);
+                $ordersCountQuery->where('orders.user_id', $clientId);
             } elseif (! empty($clientName)) {
-                $ordersCountQuery->whereHas('user', function ($q) use ($clientName) {
+                $ordersCountQuery->whereHas('order.user', function ($q) use ($clientName) {
                     $q->where('name', 'like', "%{$clientName}%")
                         ->orWhere('email', 'like', "%{$clientName}%");
                 });
@@ -133,6 +134,38 @@ class Controller extends BaseController
                 // ignore logging errors
             }
             $ordersCountByDay = $ordersCount->pluck('count', 'date');
+
+            // Aggregation: products sold per month (all time, for chart)
+            $monthQuery = \App\Models\OrderItem::selectRaw("DATE_FORMAT(orders.created_at, '%Y-%m') as month, sum(order_items.quantity) as count")
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->groupBy('month')
+                ->orderBy('month', 'asc');
+
+            if (! empty($clientId)) {
+                $monthQuery->where('orders.user_id', $clientId);
+            } elseif (! empty($clientName)) {
+                $monthQuery->whereHas('order.user', function ($q) use ($clientName) {
+                    $q->where('name', 'like', "%{$clientName}%")
+                        ->orWhere('email', 'like', "%{$clientName}%");
+                });
+            }
+            $ordersCountByMonth = $monthQuery->pluck('count', 'month');
+
+            // Aggregation: products sold per year (all time, for chart)
+            $yearQuery = \App\Models\OrderItem::selectRaw("YEAR(orders.created_at) as year, sum(order_items.quantity) as count")
+                ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                ->groupBy('year')
+                ->orderBy('year', 'asc');
+
+            if (! empty($clientId)) {
+                $yearQuery->where('orders.user_id', $clientId);
+            } elseif (! empty($clientName)) {
+                $yearQuery->whereHas('order.user', function ($q) use ($clientName) {
+                    $q->where('name', 'like', "%{$clientName}%")
+                        ->orWhere('email', 'like', "%{$clientName}%");
+                });
+            }
+            $ordersCountByYear = $yearQuery->pluck('count', 'year');
 
             // Orders list for the range (eager load user/customer and payments)
             $ordersQuery = \App\Models\Order::with(['user', 'payments'])
@@ -220,6 +253,8 @@ class Controller extends BaseController
             $totalOrders = 0;
             $recentOrders = collect();
             $ordersCountByDay = collect();
+            $ordersCountByMonth = collect();
+            $ordersCountByYear = collect();
             $start = now()->format('Y-m-d');
             $end = now()->format('Y-m-d');
             $clientName = '';
@@ -227,7 +262,7 @@ class Controller extends BaseController
             $clientId = null;
         }
 
-        return view('admin.dashboard.index', compact('totalProducts', 'inStock', 'outOfStock', 'categories', 'totalOrders', 'recentOrders', 'ordersCountByDay', 'start', 'end', 'clientName', 'clients', 'clientId'));
+        return view('admin.dashboard.index', compact('totalProducts', 'inStock', 'outOfStock', 'categories', 'totalOrders', 'recentOrders', 'ordersCountByDay', 'ordersCountByMonth', 'ordersCountByYear', 'start', 'end', 'clientName', 'clients', 'clientId'));
     }
 
     public function Internet_Ilimitado()
