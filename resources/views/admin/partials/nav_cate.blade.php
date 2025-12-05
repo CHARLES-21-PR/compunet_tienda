@@ -5,12 +5,35 @@
     z-index: 999; /* above content */
     transition: right .18s ease, transform .18s ease, width .22s ease;
     /* keep the sidebar full-height like before and stuck to the viewport */
-   
+    position: sticky;
     top: ;
-    height: 100vh;
+    height: calc(100vh - 2rem) !important;
     width: 240px; /* aumentar ligeramente para más separación */
     overflow: visible; /* allow the toggle to stick out */
-    margin: 0 0 1rem 0;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Custom scrollbar for the sidebar content */
+  .sidebar-content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Hide scrollbar for Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.2) transparent;
+  }
+  /* Hide scrollbar for Chrome/Safari/Edge */
+  .sidebar-content-wrapper::-webkit-scrollbar {
+    width: 4px;
+  }
+  .sidebar-content-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar-content-wrapper::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 4px;
   }
 
   /* Toggle button: positioned at top-right */
@@ -479,56 +502,58 @@
     </svg>
   </button>
 
-  @php
-    $adminName = auth()->user()->name ?? 'Admin';
-    $parts = array_filter(preg_split('/\s+/', $adminName));
-    $initials = '';
-    foreach($parts as $p) { $initials .= strtoupper(substr($p,0,1)); if(strlen($initials)>=2) break; }
-  @endphp
-    
-    {{-- User Info Card --}}
-    <div class="d-flex align-items-center mb-4 p-2 rounded-3 user-card-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); margin-top: 3rem;">
-      <div class="sidebar-avatar flex-shrink-0">{{ $initials }}</div>
-      <div class="ms-3 flex-grow-1 overflow-hidden sidebar-user-info" style="line-height: 1.2;">
-        <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem; letter-spacing: 0.3px;">{{ $adminName }}</div>
-        <div class="text-white-50 small text-truncate" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ auth()->user()->role }}</div>
+  <div class="sidebar-content-wrapper">
+    @php
+      $adminName = auth()->user()->name ?? 'Admin';
+      $parts = array_filter(preg_split('/\s+/', $adminName));
+      $initials = '';
+      foreach($parts as $p) { $initials .= strtoupper(substr($p,0,1)); if(strlen($initials)>=2) break; }
+    @endphp
+      
+      {{-- User Info Card --}}
+      <div class="d-flex align-items-center mb-4 p-2 rounded-3 user-card-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); margin-top: 3rem;">
+        <div class="sidebar-avatar flex-shrink-0">{{ $initials }}</div>
+        <div class="ms-3 flex-grow-1 overflow-hidden sidebar-user-info" style="line-height: 1.2;">
+          <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem; letter-spacing: 0.3px;">{{ $adminName }}</div>
+          <div class="text-white-50 small text-truncate" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ auth()->user()->role }}</div>
+        </div>
       </div>
-    </div>
 
-  <ul class="nav nav-pills flex-column">
-    <li class="nav-item mb-1">
-      <a href="{{ route('admin.dashboard.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.dashboard.*') ? 'active bg-white text-dark' : 'text-white' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h2v18H3V3zm6 6h2v12H9V9zm6-6h2v18h-2V3z"/></svg>
-        <span class="label">Dashboard</span>
-      </a>
-    </li>
-    
-    <li class="nav-item mb-1">
-      <a href="{{ route('admin.categories.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.categories.*') ? 'active bg-white text-dark' : 'text-white' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
-        <span class="label">Categorías</span>
-      </a>
-    </li>
+    <ul class="nav nav-pills flex-column">
+      <li class="nav-item mb-1">
+        <a href="{{ route('admin.dashboard.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.dashboard.*') ? 'active bg-white text-dark' : 'text-white' }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h2v18H3V3zm6 6h2v12H9V9zm6-6h2v18h-2V3z"/></svg>
+          <span class="label">Dashboard</span>
+        </a>
+      </li>
+      
+      <li class="nav-item mb-1">
+        <a href="{{ route('admin.categories.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.categories.*') ? 'active bg-white text-dark' : 'text-white' }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+          <span class="label">Categorías</span>
+        </a>
+      </li>
 
-    <li class="nav-item mb-1">
-      <a href="{{ route('admin.products.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.products.*') ? 'active bg-white text-dark' : 'text-white' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 16V8a1 1 0 0 0-.553-.894l-8-4a1 1 0 0 0-.894 0l-8 4A1 1 0 0 0 3 8v8a1 1 0 0 0 .553.894l8 4a1 1 0 0 0 .894 0l8-4A1 1 0 0 0 21 16zM12 3.319 18.447 6 12 8.681 5.553 6 12 3.319zM5 9.236 12 12.681v7.06L5 16.296V9.236zm14 7.06-7 3.445v-7.06L19 9.236v7.06z"/></svg>
-        <span class="label">Productos</span>
-      </a>
-    </li>
-    <li class="nav-item mb-1">
-      <a href="{{ route('admin.orders.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.orders.*') ? 'active bg-white text-dark' : 'text-white' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 6h-8l-2-2H3v16h18V6zm-2 10H5V8h4.17L11 9.83V16h8v0z"/></svg>
-        <span class="label">Pedidos</span>
-      </a>
-    </li>
-    <li class="nav-item mb-1">
-      <a href="{{ route('admin.clients.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.clients.*') ? 'active bg-white text-dark' : 'text-white' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
-        <span class="label">Clientes</span>
-      </a>
-    </li>
-  </ul>
+      <li class="nav-item mb-1">
+        <a href="{{ route('admin.products.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.products.*') ? 'active bg-white text-dark' : 'text-white' }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 16V8a1 1 0 0 0-.553-.894l-8-4a1 1 0 0 0-.894 0l-8 4A1 1 0 0 0 3 8v8a1 1 0 0 0 .553.894l8 4a1 1 0 0 0 .894 0l8-4A1 1 0 0 0 21 16zM12 3.319 18.447 6 12 8.681 5.553 6 12 3.319zM5 9.236 12 12.681v7.06L5 16.296V9.236zm14 7.06-7 3.445v-7.06L19 9.236v7.06z"/></svg>
+          <span class="label">Productos</span>
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a href="{{ route('admin.orders.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.orders.*') ? 'active bg-white text-dark' : 'text-white' }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 6h-8l-2-2H3v16h18V6zm-2 10H5V8h4.17L11 9.83V16h8v0z"/></svg>
+          <span class="label">Pedidos</span>
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a href="{{ route('admin.clients.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.clients.*') ? 'active bg-white text-dark' : 'text-white' }}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+          <span class="label">Clientes</span>
+        </a>
+      </li>
+    </ul>
+  </div>
 </aside>
 
 <script>

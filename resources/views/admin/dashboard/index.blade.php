@@ -255,105 +255,104 @@
                                 });
                             </script>
                         {{-- Orders widget --}}
-                       <div style="background: rgba(255,255,255,0.02); padding:0 16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);">
-                            
-    <form id="dashboard-filter-form" action="{{ route('admin.dashboard.index') }}" method="GET" class="d-flex flex-wrap align-items-end" style="gap:12px;">
-        <h3 class="h6 text-white w-100 mb-2">Filtrar pedidos por fecha</h3>
-        <div class="flex flex-col">
-                 <label for="start_date" class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Fecha Inicio</label>
-                 <input type="date" 
-                     name="start_date" 
-                     id="start_date"
-                     value="{{ $start ?? request('start_date') ?? now()->format('Y-m-d') }}"
-                     class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" style="background:#ffffff; color:#0f172a;">
-        </div>
+                       {{-- <div style="background: rgba(255,255,255,0.02); padding:0 16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);">
+                            <form id="dashboard-filter-form" action="{{ route('admin.dashboard.index') }}" method="GET" class="d-flex flex-wrap align-items-end" style="gap:12px;">
+                                <h3 class="h6 text-white w-100 mb-2">Filtrar pedidos por fecha</h3>
+                                <div class="flex flex-col">
+                                        <label for="start_date" class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Fecha Inicio</label>
+                                        <input type="date" 
+                                            name="start_date" 
+                                            id="start_date"
+                                            value="{{ $start ?? request('start_date') ?? now()->format('Y-m-d') }}"
+                                            class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" style="background:#ffffff; color:#0f172a;">
+                                </div>
 
-        <div class="flex flex-col">
-                 <label for="end_date" class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Fecha Fin</label>
-                 <input type="date" 
-                     name="end_date" 
-                     id="end_date"
-                     value="{{ $end ?? request('end_date') ?? now()->format('Y-m-d') }}"
-                     class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" style="background:#ffffff; color:#0f172a;">
-        </div>
+                                <div class="flex flex-col">
+                                        <label for="end_date" class="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">Fecha Fin</label>
+                                        <input type="date" 
+                                            name="end_date" 
+                                            id="end_date"
+                                            value="{{ $end ?? request('end_date') ?? now()->format('Y-m-d') }}"
+                                            class="rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" style="background:#ffffff; color:#0f172a;">
+                                </div>
 
-        <div class="d-flex" style="gap:8px;">
-            <button type="submit" class="btn btn-sm btn-primary">
-                <i class="bi bi-funnel" aria-hidden="true" style="margin-right:6px"></i>Filtrar
-            </button>
+                                <div class="d-flex" style="gap:8px;">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-funnel" aria-hidden="true" style="margin-right:6px"></i>Filtrar
+                                    </button>
 
-            @if(request()->hasAny(['start_date', 'end_date', 'client_id']))
-                <a id="client-clear" href="{{ route('admin.dashboard.index') }}" class="btn btn-sm btn-outline-light">Limpiar</a>
-            @endif
-        </div>
+                                    @if(request()->hasAny(['start_date', 'end_date', 'client_id']))
+                                        <a id="client-clear" href="{{ route('admin.dashboard.index') }}" class="btn btn-sm btn-outline-light">Limpiar</a>
+                                    @endif
+                                </div>
 
-    </form>
-</div>
+                            </form>
+                        </div> --}}
 
-                {{-- Orders aggregation and results --}}
+                        {{-- Orders aggregation and results --}}
                 
 
-                        <div class="mt-3">
-                        <strong class="text-white">Resultados</strong>
-                        <div class="d-flex justify-content-end mb-2">
-                            <div class="settings-pagination-top">
-                                {!! str_replace('<nav', '<nav style="background: rgba(33, 37, 41, 0.75); padding: .15rem .5rem; border-radius:10px; color: #fff; --bs-pagination-color: #fff; --bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.06); --bs-pagination-hover-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.04); --bs-pagination-active-color: #0f172a; --bs-pagination-active-bg: #eef2ff;"', $recentOrders->links('pagination::bootstrap-5')) !!}
+                        {{-- <div class="mt-3">
+                            <strong class="text-white">Resultados</strong>
+                            <div class="d-flex justify-content-end mb-2">
+                                <div class="settings-pagination-top">
+                                    {!! str_replace('<nav', '<nav style="background: rgba(33, 37, 41, 0.75); padding: .15rem .5rem; border-radius:10px; color: #fff; --bs-pagination-color: #fff; --bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.06); --bs-pagination-hover-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.04); --bs-pagination-active-color: #0f172a; --bs-pagination-active-bg: #eef2ff;"', $recentOrders->links('pagination::bootstrap-5')) !!}
+                                </div>
                             </div>
-                        </div>
-                        <div id="orders-cards" class="row g-3 mt-2">
-                            @forelse($recentOrders as $r)
-                                <div class="col-12 col-md-6 col-lg-4">
-                                    <div class="p-3" style="background: rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.04); box-shadow: 0 6px 14px rgba(0,0,0,0.5);">
-                                        <div class="d-flex align-items-start">
-                                            <div style="width:48px; height:48px; border-radius:8px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; margin-right:12px;">
-                                                <?php
-                                                    $uname = optional($r->user)->name ?? 'U';
-                                                    $parts = preg_split('/\s+/', trim($uname));
-                                                    $initials = strtoupper(substr($parts[0] ?? $uname,0,1) . (isset($parts[1]) ? substr($parts[1],0,1) : ''));
-                                                ?>
-                                                {{ $initials }}
-                                            </div>
-                                            <div class="w-100">
-                                                <div class="d-flex justify-content-between">
-                                                    <div>
-                                                        <div class="h6 text-white mb-0">Orden #{{ $r->id }} <small class="text-white-50">• {{ $r->created_at->format('Y-m-d H:i') }}</small></div>
-                                                        <div class="small text-white-50">{{ optional($r->user)->name }} — {{ optional($r->user)->email }}</div>
-                                                    </div>
-                                                    <div class="text-end">
-                                                        <div style="margin-bottom:6px;">
-                                                            <?php
-                                                                $raw = strtolower(trim($r->status ?? ''));
-                                                                $map = [
-                                                                    'paid' => 'pagado', 'pagado' => 'pagado',
-                                                                    'pending' => 'pendiente', 'pendiente' => 'pendiente',
-                                                                    'failed' => 'fallido', 'fallido' => 'fallido'
-                                                                ];
-                                                                $key = $map[$raw] ?? $raw;
-                                                                $labels = ['pagado' => 'Pagado', 'pendiente' => 'Pendiente', 'fallido' => 'Fallido'];
-                                                                $label = $labels[$key] ?? ucfirst($raw);
-                                                                $bg = $key == 'pagado' ? 'linear-gradient(90deg,#16a34a,#059669)' : ($key == 'pendiente' ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#ef4444,#dc2626)');
-                                                            ?>
-                                                            <span class="badge" style="background: {{ $bg }}; color:#fff; border-radius:10px; padding:.35rem .6rem; box-shadow:0 4px 10px rgba(0,0,0,0.25);">{{ $label }}</span>
-                                                        </div>
-                                                        <div class="small text-white">S/. {{ number_format($r->total ?? 0,2) }}</div>
-                                                    </div>
+                            <div id="orders-cards" class="row g-3 mt-2">
+                                @forelse($recentOrders as $r)
+                                    <div class="col-12 col-md-6 col-lg-4">
+                                        <div class="p-3" style="background: rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.04); box-shadow: 0 6px 14px rgba(0,0,0,0.5);">
+                                            <div class="d-flex align-items-start">
+                                                <div style="width:48px; height:48px; border-radius:8px; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; margin-right:12px;">
+                                                    <?php
+                                                        $uname = optional($r->user)->name ?? 'U';
+                                                        $parts = preg_split('/\s+/', trim($uname));
+                                                        $initials = strtoupper(substr($parts[0] ?? $uname,0,1) . (isset($parts[1]) ? substr($parts[1],0,1) : ''));
+                                                    ?>
+                                                    {{ $initials }}
                                                 </div>
-                                                <div class="mt-2 d-flex justify-content-between align-items-center">
-                                                    <div class="small text-white-50">Items: {{ optional($r->items)->count() ?? '-' }}</div>
+                                                <div class="w-100">
+                                                    <div class="d-flex justify-content-between">
                                                         <div>
-                                                        <a href="{{ route('admin.orders.show', $r) }}" class="btn btn-sm btn-outline-light order-view" data-url="{{ route('admin.orders.show', $r) }}">Ver</a>
+                                                            <div class="h6 text-white mb-0">Orden #{{ $r->id }} <small class="text-white-50">• {{ $r->created_at->format('Y-m-d H:i') }}</small></div>
+                                                            <div class="small text-white-50">{{ optional($r->user)->name }} — {{ optional($r->user)->email }}</div>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <div style="margin-bottom:6px;">
+                                                                <?php
+                                                                    $raw = strtolower(trim($r->status ?? ''));
+                                                                    $map = [
+                                                                        'paid' => 'pagado', 'pagado' => 'pagado',
+                                                                        'pending' => 'pendiente', 'pendiente' => 'pendiente',
+                                                                        'failed' => 'fallido', 'fallido' => 'fallido'
+                                                                    ];
+                                                                    $key = $map[$raw] ?? $raw;
+                                                                    $labels = ['pagado' => 'Pagado', 'pendiente' => 'Pendiente', 'fallido' => 'Fallido'];
+                                                                    $label = $labels[$key] ?? ucfirst($raw);
+                                                                    $bg = $key == 'pagado' ? 'linear-gradient(90deg,#16a34a,#059669)' : ($key == 'pendiente' ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#ef4444,#dc2626)');
+                                                                ?>
+                                                                <span class="badge" style="background: {{ $bg }}; color:#fff; border-radius:10px; padding:.35rem .6rem; box-shadow:0 4px 10px rgba(0,0,0,0.25);">{{ $label }}</span>
+                                                            </div>
+                                                            <div class="small text-white">S/. {{ number_format($r->total ?? 0,2) }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-2 d-flex justify-content-between align-items-center">
+                                                        <div class="small text-white-50">Items: {{ optional($r->items)->count() ?? '-' }}</div>
+                                                            <div>
+                                                            <a href="{{ route('admin.orders.show', $r) }}" class="btn btn-sm btn-outline-light order-view" data-url="{{ route('admin.orders.show', $r) }}">Ver</a>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            @empty
-                                <div class="col-12 text-white-50 small">No hay pedidos en este rango.</div>
-                            @endforelse
-                        </div>
+                                @empty
+                                    <div class="col-12 text-white-50 small">No hay pedidos en este rango.</div>
+                                @endforelse
+                            </div>
                         
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
 
