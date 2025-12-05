@@ -98,6 +98,7 @@
                                 <td>{{ $o->created_at->format('Y-m-d H:i') }}</td>
                                 <td>
                                     <a href="{{ route('admin.orders.show', $o->id) }}" class="btn btn-sm btn-secondary">Ver</a>
+                                    <a href="{{ route('admin.orders.edit', $o->id) }}" class="btn btn-sm btn-primary ms-1">Editar</a>
                                     @php
                                         $xmlAvailable = false;
                                         if(!empty($o->invoice)){

@@ -94,6 +94,7 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
     // Pedidos (ordenes)
     Route::get('/settings/orders', [\App\Http\Controllers\OrderSettingsController::class, 'index'])->name('admin.orders.index');
     Route::get('/settings/orders/{order}', [\App\Http\Controllers\OrderSettingsController::class, 'show'])->name('admin.orders.show');
+    Route::get('/settings/orders/{order}/edit', [\App\Http\Controllers\OrderSettingsController::class, 'edit'])->name('admin.orders.edit');
     Route::put('/settings/orders/{order}', [\App\Http\Controllers\OrderSettingsController::class, 'update'])->name('admin.orders.update');
     Route::delete('/settings/orders/{order}', [\App\Http\Controllers\OrderSettingsController::class, 'destroy'])->name('admin.orders.destroy');
     Route::post('/settings/orders/{order}/invoice', [\App\Http\Controllers\OrderSettingsController::class, 'generateInvoice'])->name('admin.orders.generate_invoice');

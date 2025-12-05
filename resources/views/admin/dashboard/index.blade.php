@@ -255,7 +255,7 @@
                                 });
                             </script>
                         {{-- Orders widget --}}
-                       {{-- <div style="background: rgba(255,255,255,0.02); padding:0 16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);">
+                        <div style="background: rgba(255,255,255,0.02); padding:0 16px; border-radius:12px; box-shadow: 0 6px 18px rgba(2,6,23,0.45); margin-bottom:18px; border:1px solid rgba(255,255,255,0.03);">
                             <form id="dashboard-filter-form" action="{{ route('admin.dashboard.index') }}" method="GET" class="d-flex flex-wrap align-items-end" style="gap:12px;">
                                 <h3 class="h6 text-white w-100 mb-2">Filtrar pedidos por fecha</h3>
                                 <div class="flex flex-col">
@@ -287,12 +287,12 @@
                                 </div>
 
                             </form>
-                        </div> --}}
+                        </div>
 
                         {{-- Orders aggregation and results --}}
                 
 
-                        {{-- <div class="mt-3">
+                        <div class="mt-3">
                             <strong class="text-white">Resultados</strong>
                             <div class="d-flex justify-content-end mb-2">
                                 <div class="settings-pagination-top">
@@ -352,7 +352,7 @@
                                 @endforelse
                             </div>
                         
-                        </div> --}}
+                        </div>
                     </div>
                 </div>
 

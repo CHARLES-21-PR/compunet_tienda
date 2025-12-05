@@ -106,6 +106,15 @@ class OrderSettingsController extends Controller
         return view('admin.orders.show', compact('order', 'invoice'));
     }
 
+    public function edit($id)
+    {
+        $order = Order::with('user')->find($id);
+        if (! $order) {
+            return redirect()->route('admin.orders.index')->with('error', 'Orden no encontrada');
+        }
+        return view('admin.orders.edit', compact('order'));
+    }
+
     /**
      * Actualizar el estado del pedido (solo admin)
      */
@@ -127,12 +136,28 @@ class OrderSettingsController extends Controller
         }
         $data = $request->validate([
             'status' => ['required', 'string', 'in:'.implode(',', $allowed)],
+            'total' => ['nullable', 'numeric', 'min:0'],
+            'payment_method' => ['nullable', 'string'],
+            'created_at' => ['nullable', 'date'],
         ]);
 
         $order->status = $data['status'];
+        
+        if (isset($data['total'])) {
+            $order->total = $data['total'];
+        }
+
+        if (isset($data['payment_method']) && \Illuminate\Support\Facades\Schema::hasColumn('orders', 'payment_method')) {
+            $order->payment_method = $data['payment_method'];
+        }
+
+        if (isset($data['created_at'])) {
+            $order->created_at = $data['created_at'];
+        }
+
         $order->save();
 
-        return redirect()->route('admin.orders.show', $order->id)->with('success', 'Estado actualizado correctamente');
+        return redirect()->route('admin.orders.show', $order->id)->with('success', 'Pedido actualizado correctamente');
     }
 
     /**

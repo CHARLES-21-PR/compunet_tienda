@@ -62,8 +62,8 @@ class Controller extends BaseController
             $end = $request->query('end_date');
             // If only one of the dates is provided, default the missing one to the provided one
             if (empty($start) && empty($end)) {
-                $start = now()->format('Y-m-d');
-                $end = now()->format('Y-m-d');
+                $start = now()->startOfMonth()->format('Y-m-d');
+                $end = now()->endOfMonth()->format('Y-m-d');
             } elseif (empty($start) && ! empty($end)) {
                 $start = $end;
             } elseif (! empty($start) && empty($end)) {
