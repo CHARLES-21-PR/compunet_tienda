@@ -6,45 +6,51 @@
     transition: right .18s ease, transform .18s ease, width .22s ease;
     /* keep the sidebar full-height like before and stuck to the viewport */
    
-    top: 1rem;
+    top: ;
     height: 100vh;
     width: 240px; /* aumentar ligeramente para más separación */
     overflow: visible; /* allow the toggle to stick out */
     margin: 0 0 1rem 0;
   }
 
-  /* Toggle button: inside when expanded, sticks out when collapsed */
+  /* Toggle button: positioned at top-right */
   .sidebar-toggle {
     position: absolute;
-    right: 12px; /* inside the panel when expanded */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 34px;
-    height: 34px;
-    padding: 0.12rem;
-    border-radius: 50%;
+    right: 10px;
+    top: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
-    background: #fff;
-    color: #222;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.1);
     font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1050;
+  }
+  .sidebar-toggle:hover {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.05);
   }
 
   /* avatar / admin icon */
   .sidebar-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #6c757d;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: #fff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 0.95rem;
-    margin-right: .5rem;
+    font-size: 1rem;
+    box-shadow: 0 4px 10px rgba(37,99,235,0.3);
   }
 
   /* ensure header area is a positioned container so avatar and toggle can be absolutely placed */
@@ -52,34 +58,36 @@
 
   /* When collapsed: center the avatar inside the small panel (symmetrical with toggle) */
   #settingsSidebarPanel.sidebar-collapsed .sidebar-avatar {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0;
-    z-index: 1000;
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
+    margin: 0 auto;
+  }
+  
+  /* Center the user info container when collapsed */
+  #settingsSidebarPanel.sidebar-collapsed .user-card-container {
+    justify-content: center;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    margin-bottom: 1rem !important;
   }
 
   /* When expanded: avatar returns to normal flow at left */
   #settingsSidebarPanel:not(.sidebar-collapsed) .sidebar-avatar {
-    position: static;
-    transform: none;
-    margin-right: .5rem;
+    margin-right: 0;
   }
 
   #settingsSidebarPanel.sidebar-collapsed {
-    width: 64px;
+    width: 70px;
   }
 
   /* when collapsed, nudge the toggle outside the panel so it remains visible */
-  #settingsSidebarPanel.sidebar-collapsed .sidebar-toggle,
-  #settingsSidebarPanel.sidebar-collapsed .ms-auto > .sidebar-toggle {
-    /* push the toggle further outside so it stays fully visible when collapsed */
-    right: -56px; /* fully outside the collapsed 64px panel */
-    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-    z-index: 22000; /* ensure it sits above everything */
-    transform: translateY(-50%) rotate(0deg);
-    pointer-events: auto;
+  #settingsSidebarPanel.sidebar-collapsed .sidebar-toggle {
+    right: -40px; /* fully outside */
+    background: #1f2937; /* Dark bg for contrast against page */
+    border-color: rgba(255,255,255,0.1);
+    color: #fff;
   }
 
   /* Center icons and make links compact when collapsed */
@@ -310,6 +318,7 @@
   /* Hide admin name and profile link when collapsed to avoid overlap */
   #settingsSidebarPanel.sidebar-collapsed .sidebar-user,
   #settingsSidebarPanel.sidebar-collapsed .sidebar-role,
+  #settingsSidebarPanel.sidebar-collapsed .sidebar-user-info,
   #settingsSidebarPanel.sidebar-collapsed .text-muted.small { display: none !important; }
 
   /* Hide the textual labels when collapsed so icons are centered */
@@ -331,17 +340,17 @@
   }
 
   /* no body-level shifting when sidebar is inline */
-  /* When body has sidebar-collapsed-right, shrink the left column to 64px and let the main expand */
+  /* When body has sidebar-collapsed-right, shrink the left column to 70px and let the main expand */
   body.sidebar-collapsed-right .row > .col-md-3,
   body.sidebar-collapsed-right .row > .col-12.col-md-3 {
-    flex: 0 0 64px !important;
-    max-width: 64px !important;
+    flex: 0 0 70px !important;
+    max-width: 70px !important;
     transition: flex-basis .22s ease, max-width .22s ease;
   }
   body.sidebar-collapsed-right .row > .col-md-9,
   body.sidebar-collapsed-right .row > .col-12.col-md-9 {
-    flex: 1 1 calc(100% - 64px) !important;
-    max-width: calc(100% - 64px) !important;
+    flex: 1 1 calc(100% - 70px) !important;
+    max-width: calc(100% - 70px) !important;
     transition: flex-basis .22s ease, max-width .22s ease;
   }
   /* smooth transitions for main content and sidebar */
@@ -462,25 +471,29 @@
 </div>
 
 {{-- Desktop sidebar panel --}}
-<aside id="settingsSidebarPanel" class="d-none d-md-block bg-dark text-white p-3 rounded-3">
+<aside id="settingsSidebarPanel" class="d-none d-md-block bg-dark text-white p-3 rounded-3 position-relative">
+  {{-- Toggle button moved here --}}
+  <button id="sidebarCollapseBtn" type="button" class="btn sidebar-toggle" data-bs-toggle="tooltip" data-bs-placement="right" title="Minimizar menú">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+    </svg>
+  </button>
+
   @php
     $adminName = auth()->user()->name ?? 'Admin';
     $parts = array_filter(preg_split('/\s+/', $adminName));
     $initials = '';
     foreach($parts as $p) { $initials .= strtoupper(substr($p,0,1)); if(strlen($initials)>=2) break; }
   @endphp
-    <div class="d-flex align-items-center mb-3 position-relative">
     
+    {{-- User Info Card --}}
+    <div class="d-flex align-items-center mb-4 p-2 rounded-3 user-card-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); margin-top: 3rem;">
       <div class="sidebar-avatar flex-shrink-0">{{ $initials }}</div>
-      <div class="ms-2 flex-grow-1 sidebar-role">
-        {{ auth()->user()->role }}
+      <div class="ms-3 flex-grow-1 overflow-hidden sidebar-user-info" style="line-height: 1.2;">
+        <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem; letter-spacing: 0.3px;">{{ $adminName }}</div>
+        <div class="text-white-50 small text-truncate" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ auth()->user()->role }}</div>
       </div>
-    
-      
-    <div class="ms-auto">
-      <button id="sidebarCollapseBtn" type="button" class="btn btn-light sidebar-toggle" data-bs-toggle="tooltip" data-bs-placement="right" title="Minimizar menú" aria-expanded="true"></button>
     </div>
-  </div>
 
   <ul class="nav nav-pills flex-column">
     <li class="nav-item mb-1">
@@ -527,9 +540,9 @@
 
       // small SVG icons for the toggle
       const iconLeft = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>`;
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>`;
       const iconRight = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>`;
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>`;
 
       // tooltips initializer (safe)
       function initTooltips(){
