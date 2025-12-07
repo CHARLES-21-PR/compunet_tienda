@@ -118,34 +118,48 @@
                                 <div class="list-group list-group-flush">
                                     @foreach ($items as $it)
                                         <div class="list-group-item py-3">
-                                            <div class="d-flex gap-3 align-items-center">
-                                                <div style="flex:0 0 32px" class="d-flex align-items-center">
+                                            <div class="d-flex gap-3 align-items-start align-items-sm-center">
+                                                {{-- Checkbox --}}
+                                                <div style="flex:0 0 32px" class="d-flex align-items-center pt-1 pt-sm-0">
                                                     <div class="m-0">
                                                         <input type="checkbox" class="select-item" data-key="{{ $it['key'] }}" checked />
                                                     </div>
                                                 </div>
-                                                <img src="{{ $it['image'] }}" alt="{{ $it['name'] }}" style="width:96px;height:96px;object-fit:cover;border-radius:8px">
-                                                <div class="flex-grow-1">
-                                                    <div class="d-flex justify-content-between align-items-start">
-                                                        <div>
-                                                            <h5 class="mb-1">{{ $it['name'] }}</h5>
-                                                            <div class="text-muted">Precio unitario: <strong>S/.{{ number_format($it['price'], 2) }}</strong></div>
+                                                
+                                                {{-- Image --}}
+                                                <img src="{{ $it['image'] }}" alt="{{ $it['name'] }}" class="d-none d-sm-block" style="width:96px;height:96px;object-fit:cover;border-radius:8px">
+                                                <img src="{{ $it['image'] }}" alt="{{ $it['name'] }}" class="d-block d-sm-none" style="width:72px;height:72px;object-fit:cover;border-radius:8px">
+
+                                                <div class="flex-grow-1 w-100">
+                                                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start">
+                                                        <div class="mb-2 mb-sm-0">
+                                                            <h5 class="mb-1 text-break" style="font-size: 1rem;">{{ $it['name'] }}</h5>
+                                                            <div class="text-muted small">Unitario: <strong>S/.{{ number_format($it['price'], 2) }}</strong></div>
                                                             <input type="hidden" class="product-price-raw" value="{{ $it['price'] }}">
                                                         </div>
-                                                        <div class="text-end">
-                                                            <div class="mb-2 text-muted">Subtotal</div>
-                                                            <div class="fw-bold">S/.{{ number_format($it['subtotal'], 2) }}</div>
+                                                        <div class="text-sm-end d-flex flex-row flex-sm-column justify-content-between w-100 w-sm-auto align-items-center align-items-sm-end gap-2">
+                                                            <div class="d-sm-none text-muted small">Subtotal:</div>
+                                                            <div class="d-none d-sm-block mb-1 text-muted small">Subtotal</div>
+                                                            <div class="fw-bold text-primary">S/.{{ number_format($it['subtotal'], 2) }}</div>
                                                         </div>
                                                     </div>
 
-                                                    <div class="d-flex align-items-center mt-3">
-                                                        <div class="input-group input-group-sm" style="width:120px">
+                                                    <div class="d-flex align-items-center mt-3 justify-content-between justify-content-sm-start">
+                                                        <div class="input-group input-group-sm" style="width:110px">
                                                             <button class="btn btn-outline-secondary btn-decrease" data-key="{{ $it['key'] }}" type="button">−</button>
                                                             <input type="text" class="form-control text-center qty-input" data-key="{{ $it['key'] }}" value="{{ $it['quantity'] }}" />
                                                             <button class="btn btn-outline-secondary btn-increase" data-key="{{ $it['key'] }}" type="button">+</button>
                                                         </div>
 
-                                                        <button class="btn btn-link text-danger ms-3 btn-remove" data-key="{{ $it['key'] }}">Eliminar</button>
+                                                        <button class="btn btn-link text-danger ms-3 btn-remove text-decoration-none p-0" data-key="{{ $it['key'] }}">
+                                                            <span class="d-none d-sm-inline">Eliminar</span>
+                                                            <span class="d-inline d-sm-none">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                                                  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                                                </svg>
+                                                            </span>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
