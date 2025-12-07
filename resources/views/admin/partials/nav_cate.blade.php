@@ -1,17 +1,36 @@
 <!-- Modern sidebar: Offcanvas on mobile + collapsible panel on desktop -->
 <style>
-  /* Sidebar panel for desktop: inline panel (pegado a la izquierda) */
+  /* Sidebar panel for desktop: fixed left */
   #settingsSidebarPanel {
-    z-index: 999; /* above content */
-    transition: right .18s ease, transform .18s ease, width .22s ease;
-    /* Make sidebar fill the parent column height */
-    min-height: 100vh;
-    flex: 1;
-    width: 240px; /* aumentar ligeramente para más separación */
-    overflow: visible; /* allow the toggle to stick out */
-    margin-bottom: 1rem;
+    z-index: 1040; /* above content */
+    transition: width .22s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    overflow: visible;
     display: flex;
     flex-direction: column;
+    border-right: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* Content wrapper adjustment */
+  @media (min-width: 768px) {
+    #settings-main {
+      margin-left: 260px;
+      transition: margin-left .22s ease;
+      width: auto !important; /* Override col-12 width */
+      flex: none !important;
+      max-width: none !important;
+    }
+    /* When sidebar is collapsed */
+    body.sidebar-collapsed-desktop #settingsSidebarPanel {
+      width: 80px;
+    }
+    body.sidebar-collapsed-desktop #settings-main {
+      margin-left: 80px;
+    }
   }
 
   /* Custom scrollbar for the sidebar content */
@@ -35,35 +54,35 @@
     border-radius: 4px;
   }
 
-  /* Toggle button: positioned at top-right */
+  /* Toggle button: positioned at top-right inside sidebar */
   .sidebar-toggle {
     position: absolute;
-    right: 10px;
-    top: 16px;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    right: -15px;
+    top: 20px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    background: rgba(255,255,255,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    background: #3b82f6;
     color: #fff;
-    border: 1px solid rgba(255,255,255,0.1);
-    font-size: 0.9rem;
+    border: 2px solid #1f2937;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.2s ease;
     z-index: 1050;
   }
   .sidebar-toggle:hover {
-    background: rgba(255,255,255,0.2);
-    transform: scale(1.05);
+    background: #2563eb;
+    transform: scale(1.1);
   }
 
   /* avatar / admin icon */
   .sidebar-avatar {
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
     border-radius: 12px;
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     color: #fff;
@@ -71,96 +90,63 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.1rem;
     box-shadow: 0 4px 10px rgba(37,99,235,0.3);
+    transition: all 0.2s ease;
   }
 
-  /* ensure header area is a positioned container so avatar and toggle can be absolutely placed */
-  #settingsSidebarPanel .d-flex.position-relative { position: relative; min-height: 56px; }
-
-  /* When collapsed: center the avatar inside the small panel (symmetrical with toggle) */
-  #settingsSidebarPanel.sidebar-collapsed .sidebar-avatar {
-    width: 36px;
-    height: 36px;
-    font-size: 0.9rem;
+  /* Collapsed state styles */
+  body.sidebar-collapsed-desktop #settingsSidebarPanel .sidebar-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
     margin: 0 auto;
   }
   
-  /* Center the user info container when collapsed */
-  #settingsSidebarPanel.sidebar-collapsed .user-card-container {
+  body.sidebar-collapsed-desktop #settingsSidebarPanel .user-card-container {
     justify-content: center;
     padding: 0 !important;
     background: transparent !important;
     border: none !important;
     margin-bottom: 1rem !important;
   }
-
-  /* When expanded: avatar returns to normal flow at left */
-  #settingsSidebarPanel:not(.sidebar-collapsed) .sidebar-avatar {
-    margin-right: 0;
-  }
-
-  #settingsSidebarPanel.sidebar-collapsed {
-    width: 70px;
-  }
-
-  /* when collapsed, nudge the toggle outside the panel so it remains visible */
-  #settingsSidebarPanel.sidebar-collapsed .sidebar-toggle {
-    right: -40px; /* fully outside */
-    background: #1f2937; /* Dark bg for contrast against page */
-    border-color: rgba(255,255,255,0.1);
-    color: #fff;
+  
+  body.sidebar-collapsed-desktop #settingsSidebarPanel .sidebar-user-info {
+    display: none;
   }
 
   /* Center icons and make links compact when collapsed */
-  #settingsSidebarPanel.sidebar-collapsed .nav-link {
+  body.sidebar-collapsed-desktop #settingsSidebarPanel .nav-link {
     justify-content: center !important;
-    padding-left: .35rem !important;
-    padding-right: .35rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    height: 48px;
   }
-  /* ensure the svg/icon inside the link is centered and doesn't keep right margin */
-  #settingsSidebarPanel .nav-link .me-2 {
+  
+  body.sidebar-collapsed-desktop #settingsSidebarPanel .nav-link .me-2 {
     margin-right: 0 !important;
     margin-left: 0 !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
   }
-  /* hide labels when collapsed (already present), ensure icons occupy center */
-  #settingsSidebarPanel.sidebar-collapsed .label { display: none !important; }
+  
+  body.sidebar-collapsed-desktop #settingsSidebarPanel .label { display: none !important; }
 
-  /* Ensure the column that contains the sidebar allows overflow so the toggle can stick out.
-     Also lock the md+ column width to match the panel width so there is no empty gap between
-     the (smaller) panel and the grid column that contains it. The collapsed body class
-     still overrides the width to 64px when collapsed. */
-  .container-fluid > .row > .col-12.col-md-3,
-  .container-fluid > .row > .col-md-3 { overflow: visible !important; }
-
-  @media (min-width: 768px) {
-    .container-fluid > .row > .col-12.col-md-3,
-    .container-fluid > .row > .col-md-3 {
-      flex: 0 0 240px !important;
-      max-width: 240px !important;
-      display: flex !important;
-      flex-direction: column !important;
-    }
-    /* Make the right column flexible instead of forcing a calc() width.
-       Using `min-width: 0` allows flex items to shrink properly and avoids
-       layout breakage around bootstrap container breakpoint (xxl ~1320px).
-       Let the right column grow/shrink naturally. */
-    .container-fluid > .row > .col-12.col-md-9,
-    .container-fluid > .row > .col-md-9 {
-      flex: 1 1 0% !important;
-      max-width: none !important;
-      min-width: 0 !important; /* important for overflowing children like wide tables */
-    }
+  /* Modern Header Bar for Mobile */
+  .mobile-admin-header {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   }
 
   /* Allow tables and wide content inside #settings-main to scroll instead of
      forcing the layout to overflow the viewport at awkward breakpoints. */
-  #settings-main { min-width: 0; }
+  #settings-main { min-width: 0; padding-left: 0 !important; padding-right: 0 !important; }
   #settings-main .table-responsive, #settings-main .table-wrapper { overflow-x: auto; }
   #settings-main table { min-width: 100%; }
 
@@ -174,6 +160,7 @@
     padding: 1.25rem !important;
     margin: 1rem 0 !important;
   }
+
 
   /* Titulares más limpios */
   #settings-main h1, #settings-main h2, #settings-main h3 {
@@ -430,11 +417,83 @@
   /* No aggressive spacing overrides here — keep default Bootstrap paddings for visual consistency. */
 </style>
 
-{{-- Mobile offcanvas toggler --}}
-<div class="p-2 border-bottom d-none d-md-flex justify-content-end">
-    <div class="d-flex d-md-none mb-2">
-      <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#settingsOffcanvas" aria-controls="settingsOffcanvas">☰ Configuración</button>
+{{-- Desktop Sidebar Panel (Fixed) --}}
+<div id="settingsSidebarPanel" class="bg-dark text-white d-none d-md-flex flex-column p-3">
+    {{-- Toggle Button --}}
+    <div id="sidebarCollapseBtn" class="sidebar-toggle" data-bs-toggle="tooltip" data-bs-placement="right" title="Minimizar menú">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
     </div>
+
+    {{-- User Info --}}
+    @php
+      $adminName = auth()->user()->name ?? 'Admin';
+      $parts = array_filter(preg_split('/\s+/', $adminName));
+      $initials = '';
+      foreach($parts as $p) { $initials .= strtoupper(substr($p,0,1)); if(strlen($initials)>=2) break; }
+    @endphp
+    <div class="user-card-container d-flex align-items-center mb-4 p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05);">
+      <div class="sidebar-avatar shadow-sm">{{ $initials }}</div>
+      <div class="ms-3 flex-grow-1 overflow-hidden sidebar-user-info" style="line-height: 1.2;">
+        <div class="fw-bold text-white text-truncate" style="font-size: 0.9rem;">{{ $adminName }}</div>
+        <div class="text-white-50 small text-truncate" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ auth()->user()->role }}</div>
+      </div>
+    </div>
+
+    {{-- Navigation --}}
+    <div class="sidebar-content-wrapper">
+        <ul class="nav nav-pills flex-column gap-1">
+            <li class="nav-item">
+              <a href="{{ route('admin.dashboard.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.dashboard.*') ? 'active bg-primary text-white shadow-sm' : 'text-white-50' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h2v18H3V3zm6 6h2v12H9V9zm6-6h2v18h-2V3z"/></svg>
+                <span class="label">Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('admin.categories.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.categories.*') ? 'active bg-primary text-white shadow-sm' : 'text-white-50' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+                <span class="label">Categorías</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('admin.products.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.products.*') ? 'active bg-primary text-white shadow-sm' : 'text-white-50' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 16V8a1 1 0 0 0-.553-.894l-8-4a1 1 0 0 0-.894 0l-8 4A1 1 0 0 0 3 8v8a1 1 0 0 0 .553.894l8 4a1 1 0 0 0 .894 0l8-4A1 1 0 0 0 21 16zM12 3.319 18.447 6 12 8.681 5.553 6 12 3.319zM5 9.236 12 12.681v7.06L5 16.296V9.236zm14 7.06-7 3.445v-7.06L19 9.236v7.06z"/></svg>
+                <span class="label">Productos</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('admin.orders.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.orders.*') ? 'active bg-primary text-white shadow-sm' : 'text-white-50' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 6h-8l-2-2H3v16h18V6zm-2 10H5V8h4.17L11 9.83V16h8v0z"/></svg>
+                <span class="label">Pedidos</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ route('admin.clients.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.clients.*') ? 'active bg-primary text-white shadow-sm' : 'text-white-50' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
+                <span class="label">Clientes</span>
+              </a>
+            </li>
+
+            <li class="nav-item mt-auto pt-3 border-top border-secondary">
+              <a href="{{ url('/') }}" class="nav-link d-flex align-items-center text-white-50">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span class="label">Ir a la Tienda</span>
+              </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+{{-- Mobile offcanvas toggler --}}
+<div class="mobile-admin-header d-md-none">
+    <div class="d-flex align-items-center">
+        <button class="btn btn-link text-white p-0 me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#settingsOffcanvas" aria-controls="settingsOffcanvas">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+            </svg>
+        </button>
+        <span class="h5 mb-0 text-white fw-bold">Panel Admin</span>
+    </div>
+</div>
 
 
 {{-- Offcanvas for small screens --}}
@@ -452,12 +511,14 @@
         @endphp
         <div class="d-flex align-items-center mb-3">
           <div class="sidebar-avatar">{{ $initials }}</div>
-          
-          
+          <div class="ms-3 flex-grow-1 overflow-hidden sidebar-user-info" style="line-height: 1.2;">
+            <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem; letter-spacing: 0.3px;">{{ $adminName }}</div>
+            <div class="text-white-50 small text-truncate" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ auth()->user()->role }}</div>
+          </div>
         </div>
       <ul class="nav nav-pills flex-column">
         <li class="nav-item mb-1">
-          <a href="{{ route('dashboard') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('dashboard') ? 'active bg-white text-dark' : 'text-white' }}">
+          <a href="{{ route('admin.dashboard.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.dashboard.*') ? 'active bg-white text-dark' : 'text-white' }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h2v18H3V3zm6 6h2v12H9V9zm6-6h2v18h-2V3z"/></svg>
             <span class="label">Dashboard</span>
           </a>
@@ -501,76 +562,6 @@
     </div>
 </div>
 
-{{-- Desktop sidebar panel --}}
-<aside id="settingsSidebarPanel" class="d-none d-md-block bg-dark text-white p-3 rounded-3 position-relative">
-  {{-- Toggle button moved here --}}
-  <button id="sidebarCollapseBtn" type="button" class="btn sidebar-toggle" data-bs-toggle="tooltip" data-bs-placement="right" title="Minimizar menú">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-      <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-    </svg>
-  </button>
-
-  <div class="sidebar-content-wrapper">
-    @php
-      $adminName = auth()->user()->name ?? 'Admin';
-      $parts = array_filter(preg_split('/\s+/', $adminName));
-      $initials = '';
-      foreach($parts as $p) { $initials .= strtoupper(substr($p,0,1)); if(strlen($initials)>=2) break; }
-    @endphp
-      
-      {{-- User Info Card --}}
-      <div class="d-flex align-items-center mb-4 p-2 rounded-3 user-card-container" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); margin-top: 3rem;">
-        <div class="sidebar-avatar flex-shrink-0">{{ $initials }}</div>
-        <div class="ms-3 flex-grow-1 overflow-hidden sidebar-user-info" style="line-height: 1.2;">
-          <div class="fw-bold text-white text-truncate" style="font-size: 0.95rem; letter-spacing: 0.3px;">{{ $adminName }}</div>
-          <div class="text-white-50 small text-truncate" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">{{ auth()->user()->role }}</div>
-        </div>
-      </div>
-
-    <ul class="nav nav-pills flex-column">
-      <li class="nav-item mb-1">
-        <a href="{{ route('admin.dashboard.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.dashboard.*') ? 'active bg-white text-dark' : 'text-white' }}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 3h2v18H3V3zm6 6h2v12H9V9zm6-6h2v18h-2V3z"/></svg>
-          <span class="label">Dashboard</span>
-        </a>
-      </li>
-      
-      <li class="nav-item mb-1">
-        <a href="{{ route('admin.categories.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.categories.*') ? 'active bg-white text-dark' : 'text-white' }}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M3 7a2 2 0 0 1 2-2h3l2 2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
-          <span class="label">Categorías</span>
-        </a>
-      </li>
-
-      <li class="nav-item mb-1">
-        <a href="{{ route('admin.products.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.products.*') ? 'active bg-white text-dark' : 'text-white' }}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 16V8a1 1 0 0 0-.553-.894l-8-4a1 1 0 0 0-.894 0l-8 4A1 1 0 0 0 3 8v8a1 1 0 0 0 .553.894l8 4a1 1 0 0 0 .894 0l8-4A1 1 0 0 0 21 16zM12 3.319 18.447 6 12 8.681 5.553 6 12 3.319zM5 9.236 12 12.681v7.06L5 16.296V9.236zm14 7.06-7 3.445v-7.06L19 9.236v7.06z"/></svg>
-          <span class="label">Productos</span>
-        </a>
-      </li>
-      <li class="nav-item mb-1">
-        <a href="{{ route('admin.orders.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.orders.*') ? 'active bg-white text-dark' : 'text-white' }}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M21 6h-8l-2-2H3v16h18V6zm-2 10H5V8h4.17L11 9.83V16h8v0z"/></svg>
-          <span class="label">Pedidos</span>
-        </a>
-      </li>
-      <li class="nav-item mb-1">
-        <a href="{{ route('admin.clients.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.clients.*') ? 'active bg-white text-dark' : 'text-white' }}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
-          <span class="label">Clientes</span>
-        </a>
-      </li>
-
-      <li class="nav-item mb-1 mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
-        <a href="{{ url('/') }}" class="nav-link d-flex align-items-center text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-          <span class="label">Ir a la Tienda</span>
-        </a>
-      </li>
-    </ul>
-  </div>
-</aside>
-
 <script>
   (function(){
     function initSidebarToggle(){
@@ -598,11 +589,9 @@
       function applyBodyClass(){
         if(document.body){
           if(panel.classList.contains('sidebar-collapsed')){
-            document.body.classList.add('sidebar-collapsed-right');
-            document.body.classList.remove('sidebar-expanded-right');
+            document.body.classList.add('sidebar-collapsed-desktop');
           } else {
-            document.body.classList.add('sidebar-expanded-right');
-            document.body.classList.remove('sidebar-collapsed-right');
+            document.body.classList.remove('sidebar-collapsed-desktop');
           }
         }
       }
@@ -610,10 +599,10 @@
       // update button icon + tooltip text
       function setBtnIcon(isCollapsed){
         btn.innerHTML = isCollapsed ? iconRight : iconLeft;
-        btn.setAttribute('title', isCollapsed ? 'Abrir menú' : 'Minimizar menú');
+        btn.setAttribute('title', isCollapsed ? 'Expandir menú' : 'Minimizar menú');
         btn.setAttribute('aria-expanded', (!isCollapsed).toString());
         // update tooltip placement so it doesn't overflow when button is outside
-        const placement = isCollapsed ? 'left' : 'right';
+        const placement = isCollapsed ? 'right' : 'left';
         btn.setAttribute('data-bs-placement', placement);
         try{
           const inst = bootstrap.Tooltip.getInstance(btn);
@@ -624,9 +613,9 @@
 
   // start expanded by default (ignore stored state for initial load)
   // If you want to respect previous user preference, read localStorage here.
-  setBtnIcon(panel.classList.contains('sidebar-collapsed'));
-  initTooltips();
-  applyBodyClass();
+  // setBtnIcon(panel.classList.contains('sidebar-collapsed'));
+  // initTooltips();
+  // applyBodyClass();
 
       btn.addEventListener('click', ()=>{
         panel.classList.toggle('sidebar-collapsed');
@@ -635,6 +624,17 @@
         setBtnIcon(isCollapsed);
         applyBodyClass();
       });
+      
+      // Initialize state
+      const storedState = localStorage.getItem('settingsSidebarCollapsed');
+      if(storedState === '1'){
+        panel.classList.add('sidebar-collapsed');
+      } else {
+        panel.classList.remove('sidebar-collapsed');
+      }
+      setBtnIcon(panel.classList.contains('sidebar-collapsed'));
+      applyBodyClass();
+      initTooltips();
 
       // No hover expansion: sidebar expands/collapses only when clicking the button
     }

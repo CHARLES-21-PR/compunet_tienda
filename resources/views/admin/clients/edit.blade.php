@@ -2,10 +2,10 @@
     @section('content')
         <div class="container-fluid">
             <div class="row g-0">
-                <div class="col-12 col-md-3 px-0">
+                <div class="col-12 px-0">
                     @include('admin.partials.nav_cate')
                 </div>
-                <div id="settings-main" class="col-12 col-md-9 ps-md-1">
+                <div id="settings-main" class="col-12">
                     <div class="bg-dark p-3" style="border-radius:14px;">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
@@ -20,16 +20,18 @@
                         <form action="{{ route('admin.clients.update', $user) }}" method="post" class="p-2" style="background: rgba(255,255,255,0.02); border-radius:8px;">
                             @csrf
                             @method('put')
-                            <div class="mb-2">
-                                <label class="form-label small">Nombre</label>
-                                <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name', $user->name) }}" required>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Email</label>
-                                <input type="email" name="email" class="form-control form-control-sm" value="{{ old('email', $user->email) }}" required>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label small text-white">Nombre</label>
+                                    <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name', $user->name) }}" required>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label small text-white">Email</label>
+                                    <input type="email" name="email" class="form-control form-control-sm" value="{{ old('email', $user->email) }}" required>
+                                </div>
                             </div>
 
-                            <div class="mt-3">
+                            <div class="mt-3 d-flex justify-content-end">
                                 <button class="btn btn-sm btn-primary">Actualizar</button>
                             </div>
                         </form>

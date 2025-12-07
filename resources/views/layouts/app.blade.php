@@ -24,7 +24,7 @@
     </head>
     <body>
         <div style="display: flex; flex-direction: column; min-height: 100vh;">
-            @unless(request()->routeIs('admin.*'))
+            @unless(request()->routeIs('admin.*') && !request()->routeIs('admin.notifications.index'))
                 @include('layouts.navigation')
             @endunless
 
@@ -49,7 +49,7 @@
                 @endif
             </main>
             <!-- Footer -->
-            @unless(request()->routeIs('admin.*'))
+            @unless(request()->routeIs('admin.*') && !request()->routeIs('admin.notifications.index'))
                 @includeIf('layouts.footer')
             @endunless
         </div>

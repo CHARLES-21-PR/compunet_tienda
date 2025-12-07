@@ -2,10 +2,10 @@
     @section('content')
         <div class="container-fluid">
             <div class="row g-0">
-                <div class="col-12 col-md-3 px-0">
+                <div class="col-12 px-0">
                     @include('admin.partials.nav_cate')
                 </div>
-                <div id="settings-main" class="col-12 col-md-9 ps-md-1">
+                <div id="settings-main" class="col-12">
                     <div class="bg-dark p-3" style="border-radius:14px;">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
@@ -18,17 +18,17 @@
                         </div>
 
                         <div style="background: rgba(255,255,255,0.02); border-radius:8px; padding:12px;">
-                            <dl class="row mb-0">
-                                <dt class="col-sm-3">ID</dt>
+                            <dl class="row mb-0 text-white">
+                                <dt class="col-sm-3 text-white-50">ID</dt>
                                 <dd class="col-sm-9">{{ $user->id }}</dd>
 
-                                <dt class="col-sm-3">Nombre</dt>
+                                <dt class="col-sm-3 text-white-50">Nombre</dt>
                                 <dd class="col-sm-9">{{ $user->name }}</dd>
 
-                                <dt class="col-sm-3">Email</dt>
+                                <dt class="col-sm-3 text-white-50">Email</dt>
                                 <dd class="col-sm-9">{{ $user->email }}</dd>
 
-                                <dt class="col-sm-3">Creado</dt>
+                                <dt class="col-sm-3 text-white-50">Creado</dt>
                                 <dd class="col-sm-9">{{ $user->created_at->format('Y-m-d H:i') }}</dd>
                             </dl>
                         </div>

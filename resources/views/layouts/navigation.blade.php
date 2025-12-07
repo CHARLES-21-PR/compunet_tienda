@@ -55,8 +55,8 @@
                 $pendingYape = collect();
             }
             try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('products') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock_min')) {
-                    $lowStock = \App\Models\Product::whereColumn('stock','<','stock_min')->latest()->take(6)->get();
+                if (\Illuminate\Support\Facades\Schema::hasTable('products') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock')) {
+                    $lowStock = \App\Models\Product::where('stock','<=', 5)->latest()->take(6)->get();
                 }
             } catch (\Throwable $e) {
                 $lowStock = collect();
@@ -194,14 +194,16 @@
         {{-- Mobile Actions (Notifications & Cart) --}}
         <div class="mobile-actions">
             @role('admin')
-            <div class="notif-wrapper" style="position:relative;display:inline-block">
-                <a href="{{ route('admin.notifications.index') }}" class="notif-btn" aria-label="Notificaciones" style="text-decoration:none;display:flex;align-items:center">
+            <div class="notif-wrapper">
+                <a href="{{ route('admin.notifications.index') }}" class="notif-btn" aria-label="Notificaciones">
                     <span class="notif-icon-wrap">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.92 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h11z"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
-                        <span class="cart-badge notif-badge">{{ $notifCount ?? 0 }}</span>
+                        @if(($notifCount ?? 0) > 0)
+                            <span class="notif-badge">{{ $notifCount ?? 0 }}</span>
+                        @endif
                     </span>
                 </a>
             </div>
@@ -302,16 +304,16 @@
                                 ->latest()->take(6)->get();
                         } elseif (\Illuminate\Support\Facades\Schema::hasTable('payments')) {
                             $pendingYape = \App\Models\Order::whereHas('payments', function($q){
-                                $q->where('method','yape')->whereIn('status',['pendiente','pending']);
-                            })->latest()->take(6)->get();
+                                $q->where('method','yape');
+                            })->whereIn('status', ['pendiente','pending'])->latest()->take(6)->get();
                         }
                     }
                 } catch (\Throwable $e) {
                     $pendingYape = collect();
                 }
                 try {
-                    if (\Illuminate\Support\Facades\Schema::hasTable('products') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock_min')) {
-                        $lowStock = \App\Models\Product::whereColumn('stock','<','stock_min')->latest()->take(6)->get();
+                    if (\Illuminate\Support\Facades\Schema::hasTable('products') && \Illuminate\Support\Facades\Schema::hasColumn('products','stock')) {
+                        $lowStock = \App\Models\Product::where('stock','<=', 5)->latest()->take(6)->get();
                     }
                 } catch (\Throwable $e) {
                     $lowStock = collect();
@@ -319,14 +321,16 @@
                 $notifCount = ($pendingYape ? $pendingYape->count() : 0) + ($lowStock ? $lowStock->count() : 0);
             @endphp
 
-            <div class="notif-wrapper" style="position:relative;display:inline-block">
+            <div class="notif-wrapper">
                 <button id="notif-toggle" class="notif-btn" aria-expanded="false" aria-label="Notificaciones">
                     <span class="notif-icon-wrap">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.92 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h11z"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
-                        <span id="notif-badge" class="notif-badge">{{ $notifCount }}</span>
+                        @if($notifCount > 0)
+                            <span id="notif-badge" class="notif-badge">{{ $notifCount }}</span>
+                        @endif
                     </span>
                 </button>
 
@@ -358,10 +362,14 @@
                                 <div class="notif-text">
                                     @foreach($lowStock as $p)
                                         <div class="notif-item">
-                                            <div class="avatar">{{ strtoupper(substr($p->name ?? 'P',0,1)) }}</div>
+                                            <div class="avatar" style="background-color: #fee2e2; color: #ef4444;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+                                                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                                </svg>
+                                            </div>
                                             <div class="content">
                                                 <div class="title">{{ $p->name ?? 'Producto' }}</div>
-                                                <div class="meta">Stock: {{ $p->stock ?? 'N/A' }}</div>
+                                                <div class="meta" style="color: #ef4444; font-weight: 600;">Stock crítico: {{ $p->stock ?? 'N/A' }}</div>
                                             </div>
                                             <div class="actions"><a href="{{ route('admin.products.edit', ['product' => $p->id]) }}">Editar</a></div>
                                         </div>
@@ -481,4 +489,210 @@
         });
     })();
 </script>
+
+<style>
+    /* Modern Notification Dropdown Styles */
+    .notif-wrapper {
+        position: relative;
+    }
+    
+    .notif-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+        color: #4b5563;
+    }
+    
+    .notif-btn:hover {
+        background-color: rgba(0,0,0,0.05);
+        color: #1f2937;
+    }
+
+    .notif-icon-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notif-badge {
+        position: absolute;
+        top: -10px;
+        right: -8px;
+        background-color: #e11d48;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        min-width: 20px;
+        border-radius: 999px;
+        display: inline-block;
+        text-align: center;
+        padding: 4px 8px;
+        line-height: 1;
+        box-shadow: 0 1px 2px rgba(0,0,0,.2);
+    }
+
+    .notif-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 320px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #f3f4f6;
+        z-index: 50;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    .notif-dropdown.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .notif-dropdown-header {
+        padding: 16px;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fff;
+    }
+
+    .notif-dropdown-header .title {
+        font-weight: 600;
+        color: #111827;
+        font-size: 0.95rem;
+    }
+
+    .notif-dropdown-header .count {
+        background-color: #eff6ff;
+        color: #2563eb;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .notif-dropdown-body {
+        max-height: 350px;
+        overflow-y: auto;
+    }
+
+    .notif-section {
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .notif-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 12px 16px;
+        gap: 12px;
+        transition: background-color 0.2s;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .notif-item:hover {
+        background-color: #f9fafb;
+    }
+
+    .notif-item .avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #e0e7ff;
+        color: #4f46e5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .notif-item .content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notif-item .title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #1f2937;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .notif-item .meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    .notif-item .actions a {
+        font-size: 0.75rem;
+        color: #2563eb;
+        font-weight: 500;
+        text-decoration: none;
+    }
+    
+    .notif-item .actions a:hover {
+        text-decoration: underline;
+    }
+
+    .notif-empty {
+        padding: 32px 16px;
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .notif-dropdown-footer {
+        padding: 12px;
+        text-align: center;
+        background-color: #f9fafb;
+        border-top: 1px solid #f3f4f6;
+    }
+
+    .notif-dropdown-footer a {
+        color: #4b5563;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .notif-dropdown-footer a:hover {
+        color: #111827;
+    }
+
+    /* Scrollbar styling */
+    .notif-dropdown-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .notif-dropdown-body::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .notif-dropdown-body::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 3px;
+    }
+    
+    .notif-dropdown-body::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+</style>
 

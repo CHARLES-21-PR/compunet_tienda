@@ -2186,7 +2186,7 @@ textarea::placeholder {
     }
     
     .enlace.enlace-active .arrow {
-        transform: rotate(180deg);
+        transform: rotate(90deg);
     }
 
     /* Adjust top right actions for mobile */
