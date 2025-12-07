@@ -190,7 +190,7 @@
                     {{-- Notifications (campana) --}}
                     @role('admin')
                     <div class="notif-wrapper" style="position:relative;display:inline-block">
-                        <button class="notif-btn" aria-expanded="false" aria-label="Notificaciones">
+                        <a href="{{ route('admin.notifications.index') }}" class="notif-btn" aria-label="Notificaciones" style="text-decoration:none;display:flex;align-items:center">
                             <span class="notif-icon-wrap">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.64 5.36 6 7.92 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h11z"></path>
@@ -198,36 +198,7 @@
                                 </svg>
                                 <span class="cart-badge notif-badge">{{ $notifCount ?? 0 }}</span>
                             </span>
-                        </button>
-
-                        <div class="notif-dropdown" aria-hidden="true">
-                            <div class="notif-dropdown-header">
-                                <div class="title">Notificaciones</div>
-                                <div class="count">{{ $notifCount ?? 0 }}</div>
-                            </div>
-                            <div class="notif-dropdown-body">
-                                @if(isset($pendingYape) && $pendingYape->count())
-                                    <div class="notif-section">
-                                        <div class="notif-text">
-                                            @foreach($pendingYape as $o)
-                                                <div class="notif-item">
-                                                    <div class="avatar">Y</div>
-                                                    <div class="content">
-                                                        <div class="title">Pedido #{{ $o->id }}</div>
-                                                        <div class="meta">{{ optional($o->user)->name ?? optional($o->client)->name ?? 'Cliente' }}</div>
-                                                    </div>
-                                                    <div class="actions"><a href="{{ route('admin.orders.show', ['order' => $o->id]) }}">Ver</a></div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                                @if((!isset($pendingYape) || $pendingYape->isEmpty()) && (!isset($lowStock) || $lowStock->isEmpty()))
-                                    <div class="notif-empty">No hay notificaciones nuevas</div>
-                                @endif
-                            </div>
-                            <div class="notif-dropdown-footer"><a href="{{ route('admin.notifications.index') }}">Ver todas</a></div>
-                        </div>
+                        </a>
                     </div>
                     @endrole
                     

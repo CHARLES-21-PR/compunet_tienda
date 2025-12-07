@@ -2036,29 +2036,30 @@ textarea::placeholder {
 @media (max-width: 1164px) {
     .mobile-actions {
         display: flex;
-        flex-direction: column;
+        flex-direction: row; /* Change to row for horizontal layout */
         width: 100%;
+        justify-content: center; /* Center the items */
         align-items: center;
-        gap: 20px;
+        gap: 30px; /* Space between icons */
         padding: 20px 0;
         border-top: 1px solid rgba(255,255,255,0.1);
-        margin-top: auto; /* Push to bottom if needed, or just flow */
+        margin-top: auto; 
     }
     
     .mobile-actions .mobile-auth-wrapper {
         display: flex;
-        flex-direction: column;
+        flex-direction: row; /* Ensure auth items are also in row if needed, though usually just one icon */
         align-items: center;
         gap: 20px;
-        width: 100%;
+        width: auto; /* Let it take necessary width */
     }
     
     .mobile-actions nav {
         display: flex;
-        flex-direction: column;
+        flex-direction: row; /* Reset to row */
         gap: 15px;
-        height: auto; /* Reset nav height */
-        background: transparent; /* Reset bg */
+        height: auto; 
+        background: transparent; 
     }
 
     .nav-1 {
