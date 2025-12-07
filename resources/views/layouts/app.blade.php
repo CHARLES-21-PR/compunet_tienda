@@ -23,7 +23,7 @@
     @endunless
     </head>
     <body>
-        <div>
+        <div style="display: flex; flex-direction: column; min-height: 100vh;">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
@@ -36,7 +36,7 @@
             @endisset
 
             <!-- Page Content -->
-            <main>
+            <main style="flex: 1;">
                 {{-- Support both component slot and blade sections for compatibility --}}
                 @isset($slot)
                     {{ $slot }}

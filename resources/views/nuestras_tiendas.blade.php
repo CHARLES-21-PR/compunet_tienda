@@ -40,13 +40,26 @@
                 <h3 class="textdelogoempre">Trabajamos con:</h3>
                 <div class="dropdown-divider divilog"></div>
                 
-                {{-- Logos de Marcas (Subir imágenes a public/img) --}}
-                <div class="col-sm collogoempresas"><img src="/img/loglenovo.webp" class="imglogosempresas" alt="Lenovo"></div>
-                <div class="col-sm collogoempresas"><img src="/img/loghp.webp" class="imglogosempresas" alt="HP"></div>
-                <div class="col-sm collogoempresas"><img src="/img/logepson.webp" class="imglogosempresas" alt="Epson"></div>
-                <div class="col-sm collogoempresas"><img src="/img/logcanon.webp" class="imglogosempresas" alt="Canon"></div>
-                <div class="col-sm collogoempresas"><img src="/img/logintel.webp" class="imglogosempresas" alt="Intel"></div>
-                <div class="col-sm collogoempresas"><img src="/img/logamd.webp" class="imglogosempresas" alt="AMD"></div>
+                {{-- Logos de Marcas (Carousel Infinito) --}}
+                <div class="marquee-container">
+                    <div class="marquee-content">
+                        {{-- Original Set --}}
+                        <div class="collogoempresas"><img src="/img/loglenovo.webp" class="imglogosempresas" alt="Lenovo"></div>
+                        <div class="collogoempresas"><img src="/img/loghp.webp" class="imglogosempresas" alt="HP"></div>
+                        <div class="collogoempresas"><img src="/img/logepson.webp" class="imglogosempresas" alt="Epson"></div>
+                        <div class="collogoempresas"><img src="/img/logcanon.webp" class="imglogosempresas" alt="Canon"></div>
+                        <div class="collogoempresas"><img src="/img/logintel.webp" class="imglogosempresas" alt="Intel"></div>
+                        <div class="collogoempresas"><img src="/img/logamd.webp" class="imglogosempresas" alt="AMD"></div>
+                        
+                        {{-- Duplicate Set for Seamless Loop --}}
+                        <div class="collogoempresas"><img src="/img/loglenovo.webp" class="imglogosempresas" alt="Lenovo"></div>
+                        <div class="collogoempresas"><img src="/img/loghp.webp" class="imglogosempresas" alt="HP"></div>
+                        <div class="collogoempresas"><img src="/img/logepson.webp" class="imglogosempresas" alt="Epson"></div>
+                        <div class="collogoempresas"><img src="/img/logcanon.webp" class="imglogosempresas" alt="Canon"></div>
+                        <div class="collogoempresas"><img src="/img/logintel.webp" class="imglogosempresas" alt="Intel"></div>
+                        <div class="collogoempresas"><img src="/img/logamd.webp" class="imglogosempresas" alt="AMD"></div>
+                    </div>
+                </div>
             </div>
             <div class="dropdown-divider divilog"></div>
         </div>
