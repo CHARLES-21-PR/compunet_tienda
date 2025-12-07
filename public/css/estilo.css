@@ -2033,7 +2033,18 @@ textarea::placeholder {
 }
 
 /* Mobile Navigation Styles */
+.mobile-user-links {
+    display: none;
+}
+
 @media (max-width: 1164px) {
+    .mobile-user-links {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
     .mobile-actions {
         display: flex;
         flex-direction: row; /* Change to row for horizontal layout */
@@ -2042,16 +2053,12 @@ textarea::placeholder {
         align-items: center;
         gap: 30px; /* Space between icons */
         padding: 20px 0;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        margin-top: auto; 
+        /* border-top: 1px solid rgba(255,255,255,0.1); Removed border as user links have it */
+        margin-top: 0; 
     }
     
     .mobile-actions .mobile-auth-wrapper {
-        display: flex;
-        flex-direction: row; /* Ensure auth items are also in row if needed, though usually just one icon */
-        align-items: center;
-        gap: 20px;
-        width: auto; /* Let it take necessary width */
+        display: none; /* Hide the old auth wrapper if it still exists */
     }
     
     .mobile-actions nav {
