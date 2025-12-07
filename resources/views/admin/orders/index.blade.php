@@ -23,7 +23,7 @@
                             <select id="ordersClientSelect" name="client_id" class="form-select form-select-sm" style="height:40px; min-width: 180px;" onchange="document.getElementById('ordersFilterForm').submit();">
                                 <option value="">Todos los clientes</option>
                                 @foreach($clients ?? [] as $client)
-                                    <option value="{{ $client->id }}" {{ request()->query('client_id') == $client->id ? 'selected' : '' }}>{{ $client->name }}</option>
+                                    <option value="{{ $client->id }}" {{ request()->query('client_id')->where(role, client') == $client->id ? 'selected' : '' }}>{{ $client->name }}</option>
                                 @endforeach
                             </select>
 

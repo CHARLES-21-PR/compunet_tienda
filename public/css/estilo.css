@@ -483,7 +483,7 @@ footer {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: -1;
+    z-index: 1; /* Ensure it is above the background but below content */
     pointer-events: none;
 }
 
@@ -1232,6 +1232,8 @@ footer {
 
 .powercolor {
     background: linear-gradient(to right, #005C98, #505BDA);
+    position: relative;
+    overflow: hidden;
 }
 
 .efectobur {

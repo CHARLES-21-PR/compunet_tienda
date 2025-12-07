@@ -118,3 +118,11 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->group(
 });
 
 require __DIR__.'/auth.php';
+
+Route::get('/soporte-tecnico', function () {
+    return view('soporte_tecnico');
+})->name('soporte.index');
+
+Route::get('/nuestros-clientes', function () {
+    return view('galeria');
+})->name('galeria.index');

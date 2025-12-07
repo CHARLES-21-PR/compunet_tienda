@@ -7,7 +7,7 @@
         <div class="redes-1">
             <a href="{{ route('dashboard') }}">Inicio</a>
             <a href="{{ route('nuestras_tiendas') }}">Nuestras tiendas</a>
-            <a href="">Contáctanos</a>
+            <a href="#">Contáctanos</a>
         </div>
     </div>
 </header>
@@ -115,10 +115,10 @@
                     <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a7.webp" alt="">Camara de vigilancia</a>
                 </li>
                 <li class="menu_inside">
-                    <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a8.webp" alt="">Soporte técnico</a>
+                    <a href="{{ route('soporte.index') }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a8.webp" alt="">Soporte técnico</a>
                 </li>
                 <li class="menu_inside">
-                    <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a9.webp" alt="">Nuestros clientes</a>
+                    <a href="{{ route('galeria.index') }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a9.webp" alt="">Nuestros clientes</a>
                 </li>
             </ul>
         </div>
