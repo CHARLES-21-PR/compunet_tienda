@@ -1944,3 +1944,147 @@ textarea::placeholder {
   background-color: #0f1729 !important; /* ejemplo: oscuro en dark mode */
   color: #e5e7eb !important;
 }
+/* Mobile Navigation Styles */
+@media (max-width: 1164px) {
+    .nav-1 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: #8bdf01; /* Keep original background color */
+        flex-direction: column;
+        align-items: stretch; /* Stretch items to full width */
+        padding-top: 60px; /* Space for close button */
+        padding-bottom: 40px;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 9998;
+        overflow-y: auto;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        display: flex; /* Ensure flex layout */
+    }
+
+    .nav-1.open {
+        transform: translateX(0);
+    }
+
+    .menu_hamburguer {
+        display: flex !important;
+        z-index: 10001; /* Higher than nav */
+        position: relative;
+        align-items: center;
+        justify-content: center;
+        width: 55px;
+        height: 55px;
+        cursor: pointer;
+    }
+    
+    .menu_hamburguer.open {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background-color: rgba(255,255,255,0.2); /* Semi-transparent background */
+        border-radius: 50%;
+    }
+
+    .enlace {
+        width: 100%;
+        margin-left: 0;
+        height: auto; /* Reset height */
+        min-height: auto;
+        display: block;
+        border-bottom: 1px solid rgba(255,255,255,0.2); /* Softer border */
+    }
+
+    .menu_link {
+        width: 100%;
+        height: auto; /* Reset height */
+        padding: 15px 25px; /* More padding */
+        justify-content: flex-start; /* Align left */
+        font-size: 1.1rem; /* Slightly larger text */
+        color: #000; /* Ensure contrast */
+        cursor: pointer; /* Ensure pointer cursor */
+        display: flex;
+        align-items: center;
+    }
+    
+    .menu_link .icon1 {
+        margin-right: 15px;
+        width: 24px; /* Fixed width for icons alignment */
+        height: auto;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .menu_link .arrow {
+        margin-left: auto; /* Push arrow to right */
+        flex-shrink: 0;
+    }
+
+    .menu_nesting {
+        position: static;
+        width: 100%;
+        transform: none;
+        clip-path: none;
+        display: none;
+        background-color: rgba(0,0,0,0.05); /* Slightly darker background for submenu */
+        box-shadow: inset 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        padding-left: 0;
+        overflow: hidden; /* Needed for height animation */
+        max-height: 0;
+        transition: max-height 0.3s ease;
+    }
+    
+    /* Force display block when active if JS animation fails or for fallback */
+    .enlace.enlace-active .menu_nesting {
+        display: block;
+    }
+    
+    .menu_inside {
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .menu_link--inside {
+        padding: 12px 25px 12px 55px; /* Indent submenu items */
+        font-size: 1rem;
+        height: auto;
+    }
+
+    .enlace:hover {
+        --clip: unset;
+        --transform: unset;
+    }
+    
+    .arrow {
+        transition: transform 0.3s;
+    }
+    
+    .enlace.enlace-active .arrow {
+        transform: rotate(180deg);
+    }
+
+    /* Adjust top right actions for mobile */
+    .top-right-actions {
+        display: none !important; 
+    }
+    
+    .nav-1 .top-right-actions {
+        display: flex !important;
+        width: 100%;
+        justify-content: center;
+        padding: 20px 0;
+        order: -1; /* Move to top of menu */
+        flex-direction: row; /* Row for user and cart icons */
+        gap: 30px;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    
+    /* Make icons in top actions bigger for mobile */
+    .nav-1 .top-right-actions svg {
+        width: 28px;
+        height: 28px;
+    }
+}
