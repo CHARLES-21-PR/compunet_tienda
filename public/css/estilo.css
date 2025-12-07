@@ -2027,8 +2027,40 @@ textarea::placeholder {
   background-color: #0f1729 !important; /* ejemplo: oscuro en dark mode */
   color: #e5e7eb !important;
 }
+/* Mobile Actions (Hidden on Desktop) */
+.mobile-actions {
+    display: none;
+}
+
 /* Mobile Navigation Styles */
 @media (max-width: 1164px) {
+    .mobile-actions {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        gap: 20px;
+        padding: 20px 0;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin-top: auto; /* Push to bottom if needed, or just flow */
+    }
+    
+    .mobile-actions .mobile-auth-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        width: 100%;
+    }
+    
+    .mobile-actions nav {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        height: auto; /* Reset nav height */
+        background: transparent; /* Reset bg */
+    }
+
     .nav-1 {
         position: fixed;
         top: 0;
