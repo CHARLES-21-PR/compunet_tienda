@@ -4,10 +4,9 @@
   #settingsSidebarPanel {
     z-index: 999; /* above content */
     transition: right .18s ease, transform .18s ease, width .22s ease;
-    /* keep the sidebar full-height like before and stuck to the viewport */
-    position: sticky;
-    top: ;
-    height: calc(100vh - 2rem) !important;
+    /* Make sidebar fill the parent column height */
+    min-height: 100vh;
+    flex: 1;
     width: 240px; /* aumentar ligeramente para más separación */
     overflow: visible; /* allow the toggle to stick out */
     margin-bottom: 1rem;
@@ -144,6 +143,8 @@
     .container-fluid > .row > .col-md-3 {
       flex: 0 0 240px !important;
       max-width: 240px !important;
+      display: flex !important;
+      flex-direction: column !important;
     }
     /* Make the right column flexible instead of forcing a calc() width.
        Using `min-width: 0` allows flex items to shrink properly and avoids
@@ -488,6 +489,13 @@
           </a>
         </li>
         
+        <li class="nav-item mb-1 mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+          <a href="{{ url('/') }}" class="nav-link d-flex align-items-center text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span class="label">Ir a la Tienda</span>
+          </a>
+        </li>
+        
         </ul>
       </div>
     </div>
@@ -550,6 +558,13 @@
         <a href="{{ route('admin.clients.index') }}" class="nav-link d-flex align-items-center {{ request()->routeIs('admin.clients.*') ? 'active bg-white text-dark' : 'text-white' }}">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
           <span class="label">Clientes</span>
+        </a>
+      </li>
+
+      <li class="nav-item mb-1 mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+        <a href="{{ url('/') }}" class="nav-link d-flex align-items-center text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="me-2"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span class="label">Ir a la Tienda</span>
         </a>
       </li>
     </ul>
