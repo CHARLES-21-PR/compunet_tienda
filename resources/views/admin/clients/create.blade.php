@@ -2,10 +2,10 @@
     @section('content')
         <div class="container-fluid">
             <div class="row g-0">
-                <div class="col-12 col-md-3 px-0">
+                <div class="col-12 px-0">
                     @include('admin.partials.nav_cate')
                 </div>
-                <div id="settings-main" class="col-12 col-md-9 ps-md-1">
+                <div id="settings-main" class="col-12">
                     <div class="bg-dark p-3" style="border-radius:14px;">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
