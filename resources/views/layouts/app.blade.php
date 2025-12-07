@@ -24,9 +24,7 @@
     </head>
     <body>
         <div style="display: flex; flex-direction: column; min-height: 100vh;">
-            @unless(request()->routeIs('admin.*'))
-                @include('layouts.navigation')
-            @endunless
+            @include('layouts.navigation')
 
             <!-- Page Heading -->
             @isset($header)
@@ -49,9 +47,7 @@
                 @endif
             </main>
             <!-- Footer -->
-            @unless(request()->routeIs('admin.*'))
-                @includeIf('layouts.footer')
-            @endunless
+            @includeIf('layouts.footer')
         </div>
         <!-- Global confirm modal (Alpine-based) -->
         <x-modal name="confirm-delete">

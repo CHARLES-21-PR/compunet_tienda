@@ -1,6 +1,8 @@
-<x-app-layout>
+﻿<x-app-layout>
     @section('content')
     <div class="container-fluid py-4 px-4">
+        
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 fw-bold text-gray-800">Centro de Notificaciones</h1>
@@ -62,7 +64,7 @@
                                                             </svg>
                                                             {{ $order->created_at->diffForHumans() }}
                                                         </span>
-                                                        <span>•</span>
+                                                        <span></span>
                                                         <span class="text-primary fw-medium">S/. {{ number_format($order->total, 2) }}</span>
                                                     </div>
                                                 </div>
@@ -166,14 +168,14 @@
                 </div>
             </div>
         </div>
+        
+        <style>
+            .page-padding { padding-top: 2rem; padding-bottom: 2rem; }
+            .card { transition: transform 0.2s ease-in-out; }
+            .card:hover { transform: translateY(-2px); }
+            .bg-opacity-10 { --bs-bg-opacity: 0.1; }
+            .object-fit-cover { object-fit: cover; }
+        </style>
     </div>
-    
-    <style>
-        .page-padding { padding-top: 2rem; padding-bottom: 2rem; }
-        .card { transition: transform 0.2s ease-in-out; }
-        .card:hover { transform: translateY(-2px); }
-        .bg-opacity-10 { --bs-bg-opacity: 0.1; }
-        .object-fit-cover { object-fit: cover; }
-    </style>
     @endsection
 </x-app-layout>
