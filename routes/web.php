@@ -126,3 +126,7 @@ Route::get('/soporte-tecnico', function () {
 Route::get('/nuestros-clientes', function () {
     return view('galeria');
 })->name('galeria.index');
+
+Route::get('/atencion/camaras', function () {
+    return view('camaras');
+})->name('camaras.index');

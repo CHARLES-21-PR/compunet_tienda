@@ -112,7 +112,7 @@
             <a class="menu_link" href=""><img class="icon1" src="/img/l5.webp" alt="">Atención especializada<img class="arrow" src="/assets/arrow.svg" alt=""></a>
             <ul class="menu_nesting">
                 <li class="menu_inside">
-                    <a href="#" class="menu_link menu_link--inside"><img class="icon2" src="/img/a7.webp" alt="">Camara de vigilancia</a>
+                    <a href="{{ route('camaras.index') }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a7.webp" alt="">Camara de vigilancia</a>
                 </li>
                 <li class="menu_inside">
                     <a href="{{ route('soporte.index') }}" class="menu_link menu_link--inside"><img class="icon2" src="/img/a8.webp" alt="">Soporte técnico</a>
