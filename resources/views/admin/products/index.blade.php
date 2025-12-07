@@ -7,14 +7,13 @@
                 </div>
                     <div id="settings-main" class="col-12">
                         <div class="bg-dark p-3" style="border-radius:14px;">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between mb-3 gap-3">
                             <div>
                                 <h1 class="text-white mb-0">Productos</h1>
-                                
                             </div>
-                            <div class="d-flex align-items-center gap-2">
-                                    <form id="productsFilterForm" method="GET" action="{{ route('admin.products.index') }}" class="d-flex align-items-center gap-2">
-                                        <div class="search-input-wrapper" style="position: relative; width: 420px;">
+                            <div class="w-100 w-lg-auto">
+                                    <form id="productsFilterForm" method="GET" action="{{ route('admin.products.index') }}" class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2">
+                                        <div class="search-input-wrapper flex-grow-1" style="position: relative; width: 100%; max-width: 420px;">
                                             <input id="productsSearchInput" type="search" name="q" value="{{ request('q') }}" class="form-control form-control-sm text-dark search-with-icon" placeholder="Buscar producto..." style="background: rgba(255,255,255,0.95); padding-left: .75rem; padding-right: 2.2rem; width:100%; height:40px;">
                                             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); color: #0f172a; pointer-events: none;"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                                         </div>
@@ -24,9 +23,11 @@
                                                 <option value="{{ $cat->id }}" @if(request('category') == $cat->id) selected @endif>{{ $cat->name }}</option>
                                             @endforeach
                                         </select>
-                                        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-light btn-sm">Limpiar</a>
-                                        <a href="#" class="btn btn-outline-light btn-sm">Exportar</a>
-                                        <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm">Crear</a>
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a href="{{ route('admin.products.index') }}" class="btn btn-outline-light btn-sm d-flex align-items-center justify-content-center">Limpiar</a>
+                                            <a href="#" class="btn btn-outline-light btn-sm d-flex align-items-center justify-content-center">Exportar</a>
+                                            <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center">Crear</a>
+                                        </div>
                                     </form>
                             </div>
                         </div>
@@ -35,7 +36,7 @@
                             <p class="text-white">No hay productos.</p>
                         @else
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="settings-pagination-top w-100 d-flex justify-content-end">
+                                <div class="settings-pagination-top w-100 d-flex justify-content-center justify-content-md-end">
                                     {!! str_replace('<nav', '<nav style="background: rgba(33, 37, 41, 0.75); padding: .15rem .5rem; border-radius:10px; color: #fff; --bs-pagination-color: #fff; --bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.06); --bs-pagination-hover-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.04); --bs-pagination-active-color: #0f172a; --bs-pagination-active-bg: #eef2ff;"', $products->links('pagination::bootstrap-5')) !!}
                                 </div>
                             </div>

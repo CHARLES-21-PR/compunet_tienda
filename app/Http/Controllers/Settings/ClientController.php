@@ -62,7 +62,7 @@ class ClientController extends Controller
 
     public function edit(User $client)
     {
-        return view('admin.clients.edit', ['client' => $client]);
+        return view('admin.clients.edit', ['user' => $client]);
     }
 
     public function update(Request $request, User $client)
@@ -93,7 +93,7 @@ class ClientController extends Controller
 
     public function show(User $client)
     {
-        return view('admin.clients.show', ['client' => $client]);
+        return view('admin.clients.show', ['user' => $client]);
     }
 
     public function destroy(User $client)

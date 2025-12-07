@@ -9,25 +9,25 @@
         </div>
         <div id="settings-main" class="col-12">
             <div class="bg-dark rounded-3 p-3">
-                <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between mb-3 gap-3">
                     <h1 class="text-white mb-0">Pedidos</h1>
-                    <div>
-                        <form id="ordersFilterForm" method="GET" action="{{ route('admin.orders.index') }}" class="d-flex align-items-center gap-2">
-                            <select id="ordersStatusSelect" name="status" class="form-select form-select-sm" style="height:40px; min-width: 180px;" onchange="document.getElementById('ordersFilterForm').submit();">
+                    <div class="w-100 w-lg-auto">
+                        <form id="ordersFilterForm" method="GET" action="{{ route('admin.orders.index') }}" class="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2">
+                            <select id="ordersStatusSelect" name="status" class="form-select form-select-sm flex-grow-1" style="height:40px; min-width: 180px;" onchange="document.getElementById('ordersFilterForm').submit();">
                                 <option value="">Todos los estados</option>
                                 @foreach($availableStatuses ?? [] as $k => $label)
                                     <option value="{{ $k }}" {{ request()->query('status') === $k ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
 
-                            <select id="ordersClientSelect" name="client_id" class="form-select form-select-sm" style="height:40px; min-width: 180px;" onchange="document.getElementById('ordersFilterForm').submit();">
+                            <select id="ordersClientSelect" name="client_id" class="form-select form-select-sm flex-grow-1" style="height:40px; min-width: 180px;" onchange="document.getElementById('ordersFilterForm').submit();">
                                 <option value="">Todos los clientes</option>
                                 @foreach($clients ?? [] as $client)
                                     <option value="{{ $client->id }}" {{ request()->query('client_id') == $client->id ? 'selected' : '' }}>{{ $client->name }}</option>
                                 @endforeach
                             </select>
 
-                            <select id="paymentMethodSelect" name="payment_method" class="form-select form-select-sm" style="height:40px; min-width: 160px;" onchange="document.getElementById('ordersFilterForm').submit();">
+                            <select id="paymentMethodSelect" name="payment_method" class="form-select form-select-sm flex-grow-1" style="height:40px; min-width: 160px;" onchange="document.getElementById('ordersFilterForm').submit();">
                                 <option value="">Todos los métodos</option>
                                 @foreach($availablePaymentMethods ?? [] as $m)
                                     <option value="{{ $m }}" {{ request()->query('payment_method') === $m ? 'selected' : '' }}>{{ ucfirst($m) }}</option>
@@ -35,7 +35,7 @@
                             </select>
 
                             @if(request()->query('status') || request()->query('payment_method') || request()->query('client_id'))
-                                <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-secondary">Limpiar</a>
+                                <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-secondary d-flex align-items-center justify-content-center" style="height:40px;">Limpiar</a>
                             @endif
                         </form>
                     </div>
@@ -45,7 +45,7 @@
                     <p class="text-white">No hay pedidos.</p>
                 @else
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="settings-pagination-top w-100 d-flex justify-content-end">
+                        <div class="settings-pagination-top w-100 d-flex justify-content-center justify-content-md-end">
                             {!! str_replace('<nav', '<nav style="background: rgba(33, 37, 41, 0.75); padding: .15rem .5rem; border-radius:10px; color: #fff; --bs-pagination-color: #fff; --bs-pagination-bg: transparent; --bs-pagination-border-color: rgba(255,255,255,0.06); --bs-pagination-hover-color: #fff; --bs-pagination-hover-bg: rgba(255,255,255,0.04); --bs-pagination-active-color: #0f172a; --bs-pagination-active-bg: #eef2ff;"', $orders->links('pagination::bootstrap-5')) !!}
                         </div>
                     </div>

@@ -19,20 +19,22 @@
 
                         <form action="{{ route('admin.clients.store') }}" method="post" class="p-2" style="background: rgba(255,255,255,0.02); border-radius:8px;">
                             @csrf
-                            <div class="mb-2">
-                                <label class="form-label small">Nombre</label>
-                                <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name') }}" required>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Email</label>
-                                <input type="email" name="email" class="form-control form-control-sm" value="{{ old('email') }}" required>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Contraseña</label>
-                                <input type="password" name="password" class="form-control form-control-sm" required>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label small">Nombre</label>
+                                    <input type="text" name="name" class="form-control form-control-sm" value="{{ old('name') }}" required>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label small">Email</label>
+                                    <input type="email" name="email" class="form-control form-control-sm" value="{{ old('email') }}" required>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label small">Contraseña</label>
+                                    <input type="password" name="password" class="form-control form-control-sm" required>
+                                </div>
                             </div>
 
-                            <div class="mt-3">
+                            <div class="mt-3 d-flex justify-content-end">
                                 <button class="btn btn-sm btn-primary">Guardar</button>
                             </div>
                         </form>
