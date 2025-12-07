@@ -46,7 +46,7 @@
                                 <span class="badge bg-{{ $badge['class'] }} @if($badge['class']==='warning' || $badge['class']==='info') text-dark @endif">{{ $badge['label'] }}</span>
                             </li>
                             <li><strong>Total:</strong> S/ {{ number_format($order->total,2) }}</li>
-                            <li><strong>Usuario:</strong> {{ $order->user_id ? 'Usuario #'.$order->user_id : 'Invitado' }}</li>
+                            <li><strong>Usuario:</strong> {{ $order->user_id ? $order->user->name : 'Invitado' }}</li>
                             <li><strong>Creado:</strong> {{ $order->created_at->format('Y-m-d H:i') }}</li>
                         </ul>
 
@@ -93,64 +93,13 @@
                                 <p class="text-white-50 mb-1"><strong>Comprobante:</strong> <a href="{{ $url }}" target="_blank" class="link-light">Ver comprobante</a></p>
                             @endif
                         @endif
-                        @if($invoice)
-                            <p class="text-white-50 mb-1"><strong>Factura / Boleta:</strong> {{ $invoice->invoice_number ?? ('#'.$invoice->id) }}</p>
-                            <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#invoiceData" aria-expanded="false">Ver datos de factura</button>
-                            <div class="collapse mt-2" id="invoiceData">
-                                <pre class="bg-dark text-white p-2" style="max-height:240px;overflow:auto;">{{ json_encode(json_decode($invoice->data), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-                            </div>
-                        @endif
+                        
 
-                        {{-- Formulario para (re)generar factura --}}
-                        <form action="{{ route('admin.orders.generate_invoice', $order->id) }}" method="POST" class="mt-2">
-                            @csrf
-                            <button class="btn btn-sm btn-primary" type="submit">Generar / Re-generar factura</button>
-                        </form>
+                        
 
-                        @php
-                            $xmlAvailable = false;
-                            $savedFiles = [];
-                            if(!empty($invoice)){
-                                $data = json_decode($invoice->data, true) ?: [];
-                                $savedFiles = $data['saved_files'] ?? [];
-                                foreach($savedFiles as $f){
-                                    if(str_ends_with(strtolower($f), '.xml')) $xmlAvailable = true;
-                                }
-                                if(!empty($data['response']) && is_array($data['response'])){
-                                    $resp = $data['response'];
-                                    if(!empty($resp['xml_base64']) || !empty($resp['xml_zip_base64'])) $xmlAvailable = true;
-                                }
-                                if(!$xmlAvailable && !empty($invoice->file_path) && str_ends_with(strtolower($invoice->file_path), '.xml')) $xmlAvailable = true;
-                            }
-                        @endphp
+                       
 
-                        @if(!empty($invoice) && !empty($savedFiles))
-                            <div class="mt-2">
-                                @foreach($savedFiles as $sf)
-                                    @php $bn = basename($sf); $bn_noext = pathinfo($bn, PATHINFO_FILENAME); @endphp
-                                    <a href="{{ route('admin.invoices.download', $invoice->id) }}?file={{ urlencode($bn) }}" class="btn btn-sm btn-outline-primary me-1" title="Abrir {{ $bn_noext }}">{{ $bn_noext }}</a>
-                                @endforeach
-                            </div>
-                        @endif
-
-                        @php
-                            $pdfAvailable = false;
-                            if(!empty($invoice)){
-                                $d = json_decode($invoice->data, true) ?: [];
-                                $sf = $d['saved_files'] ?? [];
-                                foreach($sf as $f){ if(str_ends_with(strtolower($f), '.pdf')) { $pdfAvailable = true; break; } }
-                                if(!$pdfAvailable && !empty($invoice->file_path) && str_ends_with(strtolower($invoice->file_path), '.pdf')) $pdfAvailable = true;
-                                if(!$pdfAvailable && !empty($d['response']) && is_array($d['response'])){ $r = $d['response']; if(!empty($r['pdf_base64']) || !empty($r['enlace_del_pdf']) || !empty($r['enlace_pdf'])) $pdfAvailable = true; }
-                            }
-                        @endphp
-                        @if($pdfAvailable)
-                            <a href="{{ route('admin.orders.export_xml', $order->id) }}" class="btn btn-sm btn-success mt-2" title="Exportar PDF">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 0h5.5L14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zM9.5 1v3a1 1 0 0 0 1 1h3l-4-4z"/></svg>
-                            </a>
-                        @else
-                            <button id="generateDownloadBtn" data-order-id="{{ $order->id }}" class="btn btn-sm btn-warning mt-2">Generar y descargar PDF</button>
-                            <p id="generateMsg" class="text-white-50 mt-2 small" style="display:none"></p>
-                        @endif
+                       
                     </div>
                 </div>
 
