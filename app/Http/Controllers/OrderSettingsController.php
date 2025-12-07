@@ -46,7 +46,33 @@ class OrderSettingsController extends Controller
             }
         }
 
+        // filter by client
+        $clientId = $request->query('client_id');
+        if ($clientId) {
+            $query->where('user_id', $clientId);
+        }
+
         $orders = $query->paginate(10)->withQueryString();
+        
+        // Get clients for filter
+        $clients = [];
+        try {
+            // Try to get users with role 'cliente' using Spatie
+            $clients = \App\Models\User::role('cliente')->orderBy('name')->get(['id', 'name', 'email']);
+            
+            // If no users found via Spatie, try legacy 'role' column if it exists
+            if ($clients->isEmpty()) {
+                 $clients = \App\Models\User::where('role', 'cliente')->orderBy('name')->get(['id', 'name', 'email']);
+            }
+        } catch (\Throwable $e) {
+             // If Spatie fails (e.g. trait not used) or other error, try legacy column
+             try {
+                $clients = \App\Models\User::where('role', 'cliente')->orderBy('name')->get(['id', 'name', 'email']);
+             } catch (\Throwable $e2) {
+                $clients = collect();
+             }
+        }
+
         // pass available statuses for the filter UI (from DB if available, fallback to config)
         $availableStatuses = [];
         try {
@@ -88,7 +114,7 @@ class OrderSettingsController extends Controller
             }
         }
 
-        return view('admin.orders.index', compact('orders', 'availableStatuses', 'availablePaymentMethods'));
+        return view('admin.orders.index', compact('orders', 'availableStatuses', 'availablePaymentMethods', 'clients'));
     }
 
     public function show(\Illuminate\Http\Request $request, $id)

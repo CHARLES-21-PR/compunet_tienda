@@ -20,6 +20,13 @@
                                 @endforeach
                             </select>
 
+                            <select id="ordersClientSelect" name="client_id" class="form-select form-select-sm" style="height:40px; min-width: 180px;" onchange="document.getElementById('ordersFilterForm').submit();">
+                                <option value="">Todos los clientes</option>
+                                @foreach($clients ?? [] as $client)
+                                    <option value="{{ $client->id }}" {{ request()->query('client_id') == $client->id ? 'selected' : '' }}>{{ $client->name }}</option>
+                                @endforeach
+                            </select>
+
                             <select id="paymentMethodSelect" name="payment_method" class="form-select form-select-sm" style="height:40px; min-width: 160px;" onchange="document.getElementById('ordersFilterForm').submit();">
                                 <option value="">Todos los métodos</option>
                                 @foreach($availablePaymentMethods ?? [] as $m)
@@ -27,7 +34,7 @@
                                 @endforeach
                             </select>
 
-                            @if(request()->query('status') || request()->query('payment_method'))
+                            @if(request()->query('status') || request()->query('payment_method') || request()->query('client_id'))
                                 <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-secondary">Limpiar</a>
                             @endif
                         </form>
